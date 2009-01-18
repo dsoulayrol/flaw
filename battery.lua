@@ -28,17 +28,20 @@ local flaw = {
 -- gadgets: a text gadget and an icon gadget.
 module('flaw.battery')
 
-
+-- Battery statuses.
 local STATUS_UNKNOWN = '='
 local STATUS_PLUGGED = '(A/C)'
 local STATUS_CHARGING = '^'
 local STATUS_DISCHARGING = 'v'
 
+-- The battery provider.
 BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
 BatteryProvider.data.load = '0'
 BatteryProvider.data.status = ''
 
-function BatteryProvider:refresh()
+-- Callback for provider refresh.
+-- See Provider:do_refresh.
+function BatteryProvider:do_refresh()
    local fcur = io.open("/sys/class/power_supply/" .. self.id .. "/charge_now")
    local fcap = io.open("/sys/class/power_supply/" .. self.id .. "/charge_full")
    local f_status = io.open("/sys/class/power_supply/" .. self.id .. "/status")
@@ -75,6 +78,9 @@ function BatteryProvider:refresh()
    self.data.status = status
 end
 
+-- A factory for battery providers.
+-- Only one provider is built for a slot. Created providers are stored
+-- in the provider cache. See provider.add ant provider.get.
 function BatteryProviderFactory(slot)
    local p = flaw.provider.get(_NAME, slot)
    -- Create the provider if necessary.
@@ -85,9 +91,10 @@ function BatteryProviderFactory(slot)
    return p
 end
 
-
+-- A Text gadget for battery status display.
 BatteryTextGadget = flaw.gadget.TextGadget:new{ type = _NAME .. '.TextGadget' }
 
+-- An icon gadget for battery status display.
 BatteryIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.IconGadget' }
 
 function BatteryIconGadget:update()
@@ -100,7 +107,7 @@ function BatteryIconGadget:update()
    end
 end
 
-
+-- Text gadget factory.
 function text_gadget_new(slot, delay, pattern, alignment)
    slot = slot or 'BAT0'
    delay = delay or 10
@@ -114,6 +121,7 @@ function text_gadget_new(slot, delay, pattern, alignment)
    }
    battery.widget.name = slot
    battery.widget.alignement = alignment
+   battery.provider.set_interval(delay)
 
    battery:register(delay)
    flaw.gadget.add(battery)
@@ -121,6 +129,7 @@ function text_gadget_new(slot, delay, pattern, alignment)
    return battery
 end
 
+-- Icon gadget factory.
 function icon_gadget_new(slot, delay, image_path, alignment)
    slot = slot or 'BAT0'
    delay = delay or 10
@@ -143,6 +152,7 @@ function icon_gadget_new(slot, delay, image_path, alignment)
    battery.widget.name = slot
    battery.widget.image = battery.images[STATUS_UNKNOWN]
    battery.widget.alignement = alignment
+   battery.provider.set_interval(delay)
 
    battery:register(delay)
    flaw.gadget.add(battery)

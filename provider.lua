@@ -31,19 +31,33 @@ function Provider:new(o)
    return o
 end
 
--- Check whether cached data are no more valid.
-function Provider:is_dirty()
-   if self.timeout < os.clock() then
-      self.refresh()
-      self.timeout = self.timeout + self.interval
+-- Update provider interval.
+function Provider:set_interval(interval)
+   if interval ~= nil and interval < self.interval then
+      self.interval = interval
       return true
    end
    return false
 end
 
--- Callback for provider refresh. This function is called by if
--- the provider needs to refresh its data.
+-- Check whether cached data are no more valid.
+function Provider:is_dirty()
+   return self.timeout < os.time()
+end
+
+-- Refresh the provider status if necessary.
 function Provider:refresh()
+   if self:is_dirty() then
+      self:do_refresh()
+      self.timeout = os.time() + self.interval
+      return true
+   end
+   return false
+end
+
+-- Callback for provider refresh. This function is called if
+-- the provider needs to refresh its data.
+function Provider:do_refresh()
 end
 
 
