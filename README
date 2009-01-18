@@ -1,0 +1,13 @@
+This is Flaw, a packaged OO framework to handle Awesome widgets.
+
+Flaw stands for Fully Loaded AWesome. It is an object oriented
+framework which aims at helping creating widgets for Awesome
+wiboxes.
+
+- Flaw provides gadgets, which are a layer above Awesome widgets. A
+  gadget is a widget augmented with properties, and a provider.
+
+- Providers are a solution to minimize the widgets updates needs. A
+provider can be used by multiple widgets. A provider maintains status
+data from the system and refreshes only when necessary.
+
