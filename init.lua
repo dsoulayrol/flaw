@@ -5,7 +5,9 @@
 local helper = require('flaw.helper')
 local gadget = require('flaw.gadget')
 local provider = require('flaw.provider')
+
 local battery = require('flaw.battery')
+local network = require('flaw.network')
 
 --- Fully Loaded AWesome package.
 module("flaw")

@@ -35,21 +35,27 @@ local STATUS_CHARGING = '^'
 local STATUS_DISCHARGING = 'v'
 
 -- The battery provider.
-BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
+BatteryProvider = flaw.provider.Provider:new{ type = _NAME, data = {} }
 BatteryProvider.data.load = '0'
 BatteryProvider.data.status = ''
 
 -- Callback for provider refresh.
 -- See Provider:do_refresh.
 function BatteryProvider:do_refresh()
+   local load
+   local raw_status
    local fcur = io.open("/sys/class/power_supply/" .. self.id .. "/charge_now")
    local fcap = io.open("/sys/class/power_supply/" .. self.id .. "/charge_full")
    local f_status = io.open("/sys/class/power_supply/" .. self.id .. "/status")
-   local load = math.floor(fcur:read() * 100 / fcap:read())
-   local raw_status = f_status:read()
-   fcur:close()
-   fcap:close()
-   f_status:close()
+   if fcur ~= nil and fcap ~= nil then
+      load = math.floor(fcur:read() * 100 / fcap:read())
+      fcur:close()
+      fcap:close()
+   end
+   if f_status ~= nil then
+      raw_status = f_status:read()
+      f_status:close()
+   end
 
    local status = STATUS_PLUGGED
 
@@ -114,19 +120,20 @@ function text_gadget_new(slot, delay, pattern, alignment)
    pattern = pattern or '$load% $status'
    alignment = alignment or 'right'
 
-   local battery = BatteryTextGadget:new{
+   local gadget = BatteryTextGadget:new{
       id = slot,
+      widget = capi.widget{ type = "textbox" },
       pattern = pattern,
       provider = BatteryProviderFactory(slot)
    }
-   battery.widget.name = slot
-   battery.widget.alignement = alignment
-   battery.provider.set_interval(delay)
+   gadget.widget.name = slot
+   gadget.widget.alignment = alignment
+   gadget.provider.set_interval(delay)
 
-   battery:register(delay)
-   flaw.gadget.add(battery)
+   gadget:register(delay)
+   flaw.gadget.add(gadget)
 
-   return battery
+   return gadget
 end
 
 -- Icon gadget factory.
@@ -151,7 +158,7 @@ function icon_gadget_new(slot, delay, image_path, alignment)
    }
    battery.widget.name = slot
    battery.widget.image = battery.images[STATUS_UNKNOWN]
-   battery.widget.alignement = alignment
+   battery.widget.alignment = alignment
    battery.provider.set_interval(delay)
 
    battery:register(delay)

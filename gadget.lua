@@ -85,11 +85,7 @@ end
 
 
 -- The TextGadget prototype provides a pattern mechanism.
-TextGadget = Gadget:new{ 
-   type = 'text',
-   widget = capi.widget{ type = "textbox" },
-   pattern = nil
-}
+TextGadget = Gadget:new{ type = 'text', widget = nil, pattern = nil }
 
 -- Callback for gadget refresh. See Gadget:update.
 function TextGadget:update()

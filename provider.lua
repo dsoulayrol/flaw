@@ -20,7 +20,7 @@ module('flaw.provider')
 
 -- The Provider prototype provides common behaviour and properties for
 -- widgets in a Flaw configuration.
-Provider = { type = 'unknown', id = nil, data = {}, interval = 5, timeout = 0 }
+Provider = { type = 'unknown', id = nil, data = nil, interval = 5, timeout = 0 }
 
 -- Provider constructor.
 -- @param o a table with default values.
