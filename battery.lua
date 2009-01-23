@@ -71,7 +71,7 @@ function BatteryProvider:do_refresh()
          if tonumber(load) < 10 then
             naughty.notify{
                title = "Battery Warning",
-               text = "Battery low!" .. load .. "%" .. "left!",
+               text = "Battery low! " .. load .. "% left!",
                timeout = 5,
                position = "top_right",
                fg = beautiful.fg_focus,
