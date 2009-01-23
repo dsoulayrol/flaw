@@ -29,10 +29,10 @@ local flaw = {
 module('flaw.battery')
 
 -- Battery statuses.
-local STATUS_UNKNOWN = '='
-local STATUS_PLUGGED = '(A/C)'
-local STATUS_CHARGING = '^'
-local STATUS_DISCHARGING = 'v'
+STATUS_UNKNOWN = '='
+STATUS_PLUGGED = '(A/C)'
+STATUS_CHARGING = '^'
+STATUS_DISCHARGING = 'v'
 
 -- The battery provider.
 BatteryProvider = flaw.provider.Provider:new{ type = _NAME, data = {} }
@@ -137,23 +137,26 @@ function text_gadget_new(slot, delay, pattern, alignment)
 end
 
 -- Icon gadget factory.
-function icon_gadget_new(slot, delay, image_path, alignment)
+function icon_gadget_new(slot, delay, images, alignment)
    slot = slot or 'BAT0'
    delay = delay or 10
-   image_path = image_path or beautiful.battery_icon
-   if image_path == nil then
-      error('flaw.battery.icon_gadget_new: could not find image path.')
-   end
+   images = images or {}
+   images = {
+      [STATUS_UNKNOWN] = capi.image(
+         images[STATUS_UNKNOWN] or beautiful.battery_icon),
+      [STATUS_PLUGGED] = capi.image(
+         images[STATUS_PLUGGED] or beautiful.battery_icon),
+      [STATUS_CHARGING] = capi.image(
+         images[STATUS_CHARGING] or beautiful.battery_icon),
+      [STATUS_DISCHARGING] = capi.image(
+         images[STATUS_DISCHARGING] or beautiful.battery_icon)
+   }
    alignment = alignment or 'right'
 
    local battery = BatteryIconGadget:new{
       id = slot,
       status = STATUS_UNKNOWN,
-      images = { [STATUS_UNKNOWN] = capi.image(image_path),
-                 [STATUS_PLUGGED] = capi.image(image_path),
-                 [STATUS_CHARGING] = capi.image(image_path),
-                 [STATUS_DISCHARGING] = capi.image(image_path)
-              },
+      images = images,
       provider = BatteryProviderFactory(slot)
    }
    battery.widget.name = slot
