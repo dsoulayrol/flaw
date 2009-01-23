@@ -1,4 +1,4 @@
-This is Flaw, a packaged OO framework to handle Awesome widgets.
+This is Flaw, an OO framework to handle Awesome widgets.
 
 Flaw stands for Fully Loaded AWesome. It is an object oriented
 framework which aims at helping creating widgets for Awesome
@@ -11,3 +11,23 @@ wiboxes.
 provider can be used by multiple widgets. A provider maintains status
 data from the system and refreshes only when necessary.
 
+Example:
+
+require('flaw')
+
+...
+
+-- Create battery monitor
+local w_battery_icon = flaw.battery.icon_gadget_new('BAT0').widget
+local w_battery_widget = flaw.battery.text_gadget_new('BAT0').widget
+
+-- Create network monitor
+local w_network_widget = flaw.network.text_gadget_new('wlan0').widget
+
+    conf.screens[s].wibox.widgets = {
+       ...,
+       w_battery_icon,
+       w_battery_widget,
+       w_network_widget,
+       ...
+    }
