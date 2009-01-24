@@ -50,13 +50,10 @@ function NetworkProvider:do_refresh()
             adapter = flaw.helper.strings.lstrip(string.sub(line, 0, sep - 1))
             if adapter ~= nil then
                if self.data[adapter] == nil then
-                  flaw.helper.debug.display('create ' .. adapter)
                   self.data[adapter] = {}
                   self.data[adapter].net_in = 0
                   self.data[adapter].net_out = 0
                end
-
-               -- flaw.helper.debug.display(adapter)
 
                -- First decimal number are total bytes
                tot_eth_in = string.match(line, '%s*%d+', sep)
@@ -99,12 +96,11 @@ function text_gadget_new(adapter, delay, pattern, alignment)
 
    local gadget = NetworkTextGadget:new{
       id = adapter,
-      widget = capi.widget{ type = "textbox" },
+      widget = capi.widget{ type = "textbox", align = alignment },
       pattern = pattern,
       provider = NetworkProviderFactory()
    }
    gadget.widget.name = adapter
-   gadget.widget.alignment = alignment
    gadget.provider.set_interval(delay)
 
    gadget:register(delay)

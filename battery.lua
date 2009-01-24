@@ -122,12 +122,11 @@ function text_gadget_new(slot, delay, pattern, alignment)
 
    local gadget = BatteryTextGadget:new{
       id = slot,
-      widget = capi.widget{ type = "textbox" },
+      widget = capi.widget{ type = "textbox", align = alignment },
       pattern = pattern,
       provider = BatteryProviderFactory(slot)
    }
    gadget.widget.name = slot
-   gadget.widget.alignment = alignment
    gadget.provider.set_interval(delay)
 
    gadget:register(delay)
