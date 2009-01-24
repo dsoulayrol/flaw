@@ -88,11 +88,16 @@ end
 TextGadget = Gadget:new{ type = 'text', widget = nil, pattern = nil }
 
 -- Callback for gadget refresh. See Gadget:update.
+--
+-- This implementation support two data models. First, it can apply
+-- the pattern directly on the provider data. But if the gadget ID is
+-- a key of the provider data, then the update is achieved by applying
+-- the pattern to the content of this entry.
 function TextGadget:update()
-   if self.provider ~= nil then
+   if self.provider ~= nil and self.provider.data ~= nil then
       self.provider:refresh()
-      self.widget.text =
-         flaw.helper.strings.format(self.pattern, self.provider.data)
+      data_set = self.provider.data[self.id] or self.provider.data
+      self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
    end
 end
 
