@@ -154,13 +154,13 @@ function icon_gadget_new(slot, delay, images, alignment)
 
    local battery = BatteryIconGadget:new{
       id = slot,
+      widget = capi.widget{ type = 'imagebox', align = alignment },
       status = STATUS_UNKNOWN,
       images = images,
       provider = BatteryProviderFactory(slot)
    }
    battery.widget.name = slot
    battery.widget.image = battery.images[STATUS_UNKNOWN]
-   battery.widget.alignment = alignment
    battery.provider.set_interval(delay)
 
    battery:register(delay)

@@ -105,6 +105,5 @@ end
 -- The IconGadget prototype provides a simple icon view.
 IconGadget = Gadget:new{ 
    type = 'icon',
-   widget = capi.widget{ type = 'imagebox' },
    images = nil
 }
