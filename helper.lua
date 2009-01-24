@@ -152,6 +152,21 @@ function strings.format_bytes(bytes, padding)
    return tostring(bytes) .. unities[sign]
 end
 
+-- Strip left spaces on a string.
+function strings.lstrip(str)
+   return str:match("^[ \t]*(.*)$")
+end
+
+-- Strip spaces on a string.
+function strings.strip(str)
+   return str:match("^[ \t]*(.-)[ \t]*$")
+end
+
+-- Strip right spaces on a string.
+function strings.rstrip(str)
+   return str:match("^(.-)[ \t]*$")
+end
+
 
 -- --{{{ Escape a string
 -- function helper.escape(text)
