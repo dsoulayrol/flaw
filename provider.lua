@@ -5,6 +5,7 @@
 
 -- Grab environment.
 local os = os
+local error = error
 local setmetatable = setmetatable
 
 local awful = {
