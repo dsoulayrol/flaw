@@ -4,6 +4,8 @@
 
 -- Grab environment.
 local setmetatable = setmetatable
+local ipairs = ipairs
+local tonumber = tonumber
 local tostring = tostring -- For Debug only.
 
 local capi = {
@@ -96,8 +98,27 @@ TextGadget = Gadget:new{ type = 'text', widget = nil, pattern = nil }
 function TextGadget:update()
    if self.provider ~= nil and self.provider.data ~= nil then
       self.provider:refresh()
-      data_set = self.provider.data[self.id] or self.provider.data
+      local data_set = self.provider.data[self.id] or self.provider.data
       self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
+   end
+end
+
+-- The GraphGadget prototype provides a list of values to plot.
+GraphGadget = Gadget:new{ type = 'graph', widget = nil, values = {} }
+
+-- Callback for gadget refresh. See Gadget:update.
+--
+-- This implementation support two data models. First, it can apply
+-- the pattern directly on the provider data. But if the gadget ID is
+-- a key of the provider data, then the update is achieved by applying
+-- the pattern to the content of this entry.
+function GraphGadget:update()
+   if self.provider ~= nil and self.provider.data ~= nil then
+      self.provider:refresh()
+      local data_set = self.provider.data[self.id] or self.provider.data
+      for i, v in ipairs(self.values) do
+         self.widget:plot_data_add(v, tonumber(data_set[v]))
+      end
    end
 end
 
