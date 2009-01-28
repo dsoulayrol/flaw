@@ -8,6 +8,7 @@ local provider = require('flaw.provider')
 
 local battery = require('flaw.battery')
 local network = require('flaw.network')
+local cpu = require('flaw.cpu')
 
 --- Fully Loaded AWesome package.
 module("flaw")
