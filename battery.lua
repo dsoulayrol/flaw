@@ -49,6 +49,7 @@ function BatteryProvider:do_refresh()
    local f_status = io.open("/sys/class/power_supply/" .. self.id .. "/status")
    if fcur ~= nil and fcap ~= nil then
       load = math.floor(fcur:read() * 100 / fcap:read())
+      if load > 100 then load = 100 end
       fcur:close()
       fcap:close()
    end
