@@ -50,9 +50,7 @@ function NetworkProvider:do_refresh()
             adapter = flaw.helper.strings.lstrip(string.sub(line, 0, sep - 1))
             if adapter ~= nil then
                if self.data[adapter] == nil then
-                  self.data[adapter] = {}
-                  self.data[adapter].net_in = 0
-                  self.data[adapter].net_out = 0
+                  self.data[adapter] = { net_in = 0, net_out = 0 }
                end
 
                -- First decimal number are total bytes
