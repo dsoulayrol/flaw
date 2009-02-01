@@ -1,0 +1,57 @@
+.\" Process this file with
+.\" groff -t -mandoc -Tascii flaw.7 | less
+.\"
+.TH flaw 7 "FEBRUARY 2009"
+.SH NAME
+flaw \- a Lua OO framework to handle widgets in awesome
+.SH DESCRIPTION
+.B flaw
+stands for Fully Loaded AWesome.  It is a LUA object oriented library
+providing a thin abstraction layer above awesome widgets.  It is aimed
+at being simple and resources efficient.
+.sp
+To achieve these goals,
+.B flaw
+provides the following objects.
+.IP flaw.gadget
+A wrapper around an awesome widget, which also contains properties, a
+refresh mechanism and a data provider (see below).
+.B flaw
+provides many gadgets which can wrap text boxes, image boxes
+or graphs.
+.IP flaw.provider
+A utility to minimize the widgets updates needs.  A provider can be
+used by one or multiple gadgets.  It maintains status data from the
+system and refreshes only when necessary (ie. when the widget with the
+shortest refresh rate demands it).
+.P
+The provider is handled internally by each gadget, so the gadgets are
+normally the only useful objects for the user.
+.SH USAGE
+Before anything else, insert require('flaw') in your configuration file.
+.SS The flaw API
+.IP flaw.gadget.new
+.SH WIDGET TYPES
+.SS Battery
+.SS CPU
+.SS Memory
+.SS Network
+
+.SH EXAMPLES
+
+.SH DIAGNOSTICS
+.B flaw
+should output in .xsession-errors any useful warning, but this is not
+the case yet.
+.SH BUGS
+Certainly a lot.
+.br
+.B flaw
+currently trashes the whole configuration loading if something was
+wrong and does not provide diagnostics.
+.SH AUTHOR
+David Soulayrol <david.soulayrol at gmail dot net>
+.SH "SEE ALSO"
+.BR awesome (1),
+.BR awesome-client (1),
+.BR awesomerc (5)
