@@ -83,26 +83,8 @@ function NetworkProviderFactory()
 end
 
 -- A Text gadget for network status display.
-NetworkTextGadget = flaw.gadget.TextGadget:new{ type = _NAME .. '.TextGadget' }
-
--- Text gadget factory.
-function text_gadget_new(adapter, delay, pattern, alignment)
-   adapter = adapter or 'eth0'
-   delay = delay or 5
-   pattern = pattern or 'in:$net_in out:$net_out'
-   alignment = alignment or 'right'
-
-   local gadget = NetworkTextGadget:new{
-      id = adapter,
-      widget = capi.widget{ type = "textbox", align = alignment },
-      pattern = pattern,
-      provider = NetworkProviderFactory()
-   }
-   gadget.widget.name = adapter
-   gadget.provider.set_interval(delay)
-
-   gadget:register(delay)
-   flaw.gadget.add(gadget)
-
-   return gadget
-end
+flaw.gadget.register(
+   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
+   NetworkProviderFactory,
+   { delay = 2, pattern = 'in:$net_in out:$net_out' }
+)

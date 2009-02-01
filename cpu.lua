@@ -6,11 +6,6 @@
 local io = io
 local string = string
 
-local capi = {
-   widget = widget,
-   image = image,
-}
-
 local beautiful = require('beautiful')
 local naughty = require('naughty')
 
@@ -95,13 +90,22 @@ function CPUProviderFactory()
 end
 
 -- A Text gadget for cpu status display.
-CPUTextGadget = flaw.gadget.TextGadget:new{ type = _NAME .. '.TextGadget' }
+flaw.gadget.register(
+   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
+   CPUProviderFactory,
+   { delay = 1, pattern = '$load_user/$load_sum' }
+)
 
 -- An graph gadget for cpu load display.
-CPUGraphGadget = flaw.gadget.GraphGadget:new{ type = _NAME .. '.GraphGadget' }
+flaw.gadget.register(
+   flaw.gadget.GraphGadget:new{ type = _NAME .. '.graph' },
+   CPUProviderFactory,
+   { delay = 1, values = { 'load_sum' } }
+)
 
 -- An icon gadget for cpu status display.
-CPUIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.IconGadget' }
+-- TODO!
+CPUIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.icon' }
 
 function CPUIconGadget:update()
    if self.provider ~= nil then
@@ -111,61 +115,4 @@ function CPUIconGadget:update()
          self.widget.icon = self.images[self.status]
       end
    end
-end
-
--- Text gadget factory.
-function text_gadget_new(id, delay, pattern, alignment)
-   slot = slot or 'cpu'
-   delay = delay or 2
-   pattern = pattern or '$load_user/$load_sum'
-   alignment = alignment or 'right'
-
-   local gadget = CPUTextGadget:new{
-      id = id,
-      widget = capi.widget{ type = 'textbox', align = alignment },
-      pattern = pattern,
-      provider = CPUProviderFactory(id)
-   }
-   gadget.widget.name = id
-   gadget.provider.set_interval(delay)
-
-   gadget:register(delay)
-   flaw.gadget.add(gadget)
-
-   return gadget
-end
-
--- Graph gadget factory.
-function graph_gadget_new(id, delay, values, alignment)
-   slot = slot or 'cpu'
-   delay = delay or 2
-   values = values or { 'load_sum' }
-   alignment = alignment or 'right'
-
-   local gadget = CPUGraphGadget:new{
-      id = slot,
-      widget = capi.widget{ type = 'graph', name = id, align = alignment },
-      values = values,
-      provider = CPUProviderFactory(slot)
-   }
-
--- TODO: customization
---   gadget.widget.width = "35"
---   gadget.widget.height = "0.8"
---   gadget.widget.grow = "right"
---   gadget.widget.bg = beautiful.bg_focus
---   gadget.widget.border_color =
-
-   gadget.widget.max_value = "100"
-   -- gadget.widget:plot_properties_set('cpu', {
-   --                                      fg = beautiful.fg_normal,
-   --                                      fg_end = beautiful.fg_urgent
-   --                                   })
-
-   gadget.provider.set_interval(delay)
-
-   gadget:register(delay)
-   flaw.gadget.add(gadget)
-
-   return gadget
 end

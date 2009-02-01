@@ -6,11 +6,7 @@
 local io = io
 local math = math
 local tonumber = tonumber
-
-local capi = {
-   widget = widget,
-   image = image,
-}
+local tostring = tostring -- For DEBUG only.
 
 local beautiful = require('beautiful')
 local naughty = require('naughty')
@@ -99,73 +95,27 @@ function BatteryProviderFactory(slot)
 end
 
 -- A Text gadget for battery status display.
-BatteryTextGadget = flaw.gadget.TextGadget:new{ type = _NAME .. '.TextGadget' }
+flaw.gadget.register(
+   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
+   BatteryProviderFactory,
+   { pattern = '$load% $status' }
+)
 
 -- An icon gadget for battery status display.
-BatteryIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.IconGadget' }
+BatteryIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.imagebox' }
 
 function BatteryIconGadget:update()
    if self.provider ~= nil then
       self.provider:refresh()
       if self.provider.data.status ~= self.status then
          self.status = self.provider.data.status
-         self.widget.icon = self.images[self.status]
+         self.widget.image = self.images[self.status]
       end
    end
 end
 
--- Text gadget factory.
-function text_gadget_new(slot, delay, pattern, alignment)
-   slot = slot or 'BAT0'
-   delay = delay or 10
-   pattern = pattern or '$load% $status'
-   alignment = alignment or 'right'
-
-   local gadget = BatteryTextGadget:new{
-      id = slot,
-      widget = capi.widget{ type = "textbox", align = alignment },
-      pattern = pattern,
-      provider = BatteryProviderFactory(slot)
-   }
-   gadget.widget.name = slot
-   gadget.provider.set_interval(delay)
-
-   gadget:register(delay)
-   flaw.gadget.add(gadget)
-
-   return gadget
-end
-
--- Icon gadget factory.
-function icon_gadget_new(slot, delay, images, alignment)
-   slot = slot or 'BAT0'
-   delay = delay or 10
-   images = images or {}
-   images = {
-      [STATUS_UNKNOWN] = capi.image(
-         images[STATUS_UNKNOWN] or beautiful.battery_icon),
-      [STATUS_PLUGGED] = capi.image(
-         images[STATUS_PLUGGED] or beautiful.battery_icon),
-      [STATUS_CHARGING] = capi.image(
-         images[STATUS_CHARGING] or beautiful.battery_icon),
-      [STATUS_DISCHARGING] = capi.image(
-         images[STATUS_DISCHARGING] or beautiful.battery_icon)
-   }
-   alignment = alignment or 'right'
-
-   local battery = BatteryIconGadget:new{
-      id = slot,
-      widget = capi.widget{ type = 'imagebox', align = alignment },
-      status = STATUS_UNKNOWN,
-      images = images,
-      provider = BatteryProviderFactory(slot)
-   }
-   battery.widget.name = slot
-   battery.widget.image = battery.images[STATUS_UNKNOWN]
-   battery.provider.set_interval(delay)
-
-   battery:register(delay)
-   flaw.gadget.add(battery)
-
-   return battery
-end
+flaw.gadget.register(
+   BatteryIconGadget,
+   BatteryProviderFactory,
+   { status = STATUS_UNKNOWN }
+)

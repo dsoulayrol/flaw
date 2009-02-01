@@ -3,8 +3,11 @@
 -- @author David 'd_rol' Soulayrol &lt;david.soulayrol@gmail.com&gt;
 
 -- Grab environment.
-local setmetatable = setmetatable
+local error = error
 local ipairs = ipairs
+local pairs = pairs
+local setmetatable = setmetatable
+local string = string
 local tonumber = tonumber
 local tostring = tostring -- For Debug only.
 
@@ -31,16 +34,39 @@ module('flaw.gadget')
 -- Global gadgets storage management.
 local _gadgets_cache = {}
 
+-- Create a new entry in the gadgets cache.
+function register(c, pc, p, o)
+   if c == nil or c.type == nil then
+      error('flaw.gadget.record: invalid class.')
+   end
+
+   -- Store default important values.
+   p = p or {}
+   if p.delay == nil then p.delay = 10 end
+
+   o = o or {}
+   if o.alignment == nil then o.alignment = 'right' end
+
+   _gadgets_cache[c.type] = {
+      prototype = c,
+      provider = pc,
+      instances = {},
+      defaults = { gadget = p, widget = o }
+   }
+end
+
 -- Add a gadget to the cache.
 -- @param g the gadget to store.
+-- @return the gadget stored, or nil.
 function add(g)
-   if g == nil or g.id == nil then
-      error('flaw.gadget.gadget_add: invalid gadget.')
+   if g == nil or g.type == nil or g.id == nil then
+      error('flaw.gadget.add: invalid gadget.')
    end
    if _gadgets_cache[g.type] == nil then
-      _gadgets_cache[g.type] = {}
+      error('flaw.gadget.add: unknown gadget class: ' .. g.type)
    end
    _gadgets_cache[g.type][g.id] = g
+   return g
 end
 
 -- Retrieve a gadget from the cache using a type and an identifier.
@@ -48,17 +74,65 @@ end
 -- @param id the identifier of the gadget to retrieve.
 function get(type, id)
    if type == nil or id == nil then
-      error('flaw.gadget.gadget_get: invalid information.')
+      error('flaw.gadget.get: invalid information.')
    else
       return _gadgets_cache[type] ~= nil
-         and _gadgets_cache[type][id] or nil
+         and _gadgets_cache[type].instances[id] or nil
    end
 end
 
+-- Create a new gadget.
+function new(type, id, p, o)
+   if type == nil or id == nil then
+      error('flaw.gadget.new: invalid information.')
+   end
+
+   local entry = _gadgets_cache[type]
+   if entry == nil then
+      -- print('flaw.gadget.new: unknown gadget class: ' .. type)
+      return nil
+   end
+
+   -- Load default parameters.
+   p = p or {}
+   o = o or {}
+   for k in pairs(entry.defaults.gadget) do
+      p[k] = p[k] or entry.defaults.gadget[k]
+   end
+   for k in pairs(entry.defaults.widget) do
+      o[k] = o[k] or entry.defaults.widget[k]
+   end
+
+   -- Create the widget.
+   local proto = entry.prototype
+   local g = proto:new{
+      id = id,
+      provider = _gadgets_cache[type].provider(id),
+      widget = capi.widget{
+         type = proto:get_widget_type(),
+         name = id,
+         align = o.alignment }
+   }
+
+   -- Configure the gadget.
+   for k in pairs(p) do g[k] = p[k] end
+   for k in pairs(o) do g.widget[k] = o[k] end
+
+   -- Start monitoring.
+   g:register(p.delay)
+
+   return add(g)
+end
 
 -- The Gadget prototype provides common behaviour and properties for
 -- widgets in a Flaw configuration.
-Gadget = { type = 'unknown', id = nil, widget = nil, provider = nil }
+--
+-- The gadget type MUST be composed of two parts. The first represents
+-- the module this gadget is part of and can be composed of any
+-- character. The second, separated from the first one by a dot, is
+-- the kind of widget used internally (ie. graph or textbox). It MUST
+-- match exactly a widget type as defined in Awful API.
+Gadget = { type = 'unknown.unknown', id = nil, widget = nil, provider = nil }
 
 -- Gadget constructor.
 -- @param o a table with default values. Most useful keys are type,
@@ -74,10 +148,14 @@ end
 -- @param delay the delay between gadget updates in seconds
 --        (default value is 10).
 function Gadget:register(delay)
-   delay = delay or 10  
-   awful.hooks.timer.register(delay, 
-                              function() self:update() end,
-                              true)
+   delay = delay or 10
+
+   -- Update provider delay.
+   if self.provider ~= nil then
+      self.provider.set_interval(delay)
+   end
+
+   awful.hooks.timer.register(delay, function() self:update() end, true)
 end
 
 -- Callback for gadget refresh. This function is called by awful if
@@ -85,9 +163,14 @@ end
 function Gadget:update()
 end
 
+-- Retrieve the type of the widget used by this gadget.
+function Gadget:get_widget_type()
+   return string.match(self.type, '.*%.(%a+)')
+end
+
 
 -- The TextGadget prototype provides a pattern mechanism.
-TextGadget = Gadget:new{ type = 'text', widget = nil, pattern = nil }
+TextGadget = Gadget:new{ type = 'unknown.textbox', widget = nil, pattern = nil }
 
 -- Callback for gadget refresh. See Gadget:update.
 --
@@ -104,7 +187,7 @@ function TextGadget:update()
 end
 
 -- The GraphGadget prototype provides a list of values to plot.
-GraphGadget = Gadget:new{ type = 'graph', widget = nil, values = {} }
+GraphGadget = Gadget:new{ type = 'unknown.graph', widget = nil, values = {} }
 
 -- Callback for gadget refresh. See Gadget:update.
 --
@@ -124,7 +207,4 @@ end
 
 
 -- The IconGadget prototype provides a simple icon view.
-IconGadget = Gadget:new{ 
-   type = 'icon',
-   images = nil
-}
+IconGadget = Gadget:new{ type = 'unknown.imagebox', images = {} }
