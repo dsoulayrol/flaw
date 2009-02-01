@@ -18,16 +18,29 @@ require('flaw')
 ...
 
 -- Create battery monitor
-local w_battery_icon = flaw.battery.icon_gadget_new('BAT0').widget
-local w_battery_widget = flaw.battery.text_gadget_new('BAT0').widget
+w_batteryicon = flaw.gadget.new(
+   'flaw.battery.imagebox', 'BAT0',
+   {
+      images = {
+         [flaw.battery.STATUS_UNKNOWN] = image(beautiful.battery_icon),
+         [flaw.battery.STATUS_PLUGGED] = image(beautiful.battery_icon),
+         [flaw.battery.STATUS_CHARGING] = image(beautiful.battery_icon),
+         [flaw.battery.STATUS_DISCHARGING] = image(beautiful.battery_icon)
+      }
+   },
+   {}
+).widget
+w_batterybox = flaw.gadget.new(
+   'flaw.battery.textbox', 'BAT0').widget
 
 -- Create network monitor
-local w_network_widget = flaw.network.text_gadget_new('wlan0').widget
+w_netbox = flaw.gadget.new(
+   'flaw.network.textbox', 'wlan0', { pattern = '[$net_in]' }).widget
 
     conf.screens[s].wibox.widgets = {
        ...,
-       w_battery_icon,
-       w_battery_widget,
-       w_network_widget,
+       w_batteryicon,
+       w_batterybox,
+       w_netbox,
        ...
     }
