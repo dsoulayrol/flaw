@@ -5,11 +5,14 @@
 
 -- Grab environment.
 local os = os
-local error = error
 local setmetatable = setmetatable
 
 local awful = {
    hooks = require('awful.hooks')
+}
+
+local flaw = {
+   helper = require('flaw.helper'),
 }
 
 
@@ -69,12 +72,13 @@ local _providers_cache = {}
 -- @param p the provider to store.
 function add(p)
    if p == nil or p.id == nil then
-      error('flaw.provider.provider_add: invalid provider.')
+      flaw.helper.debug.error('flaw.provider.provider_add: invalid provider.')
+   else
+      if _providers_cache[p.type] == nil then
+         _providers_cache[p.type] = {}
+      end
+      _providers_cache[p.type][p.id] = p
    end
-   if _providers_cache[p.type] == nil then
-      _providers_cache[p.type] = {}
-   end
-   _providers_cache[p.type][p.id] = p
 end
 
 -- Retrieve a provider from the cache using a type and an identifier.
@@ -82,7 +86,7 @@ end
 -- @param id the identifier of the provider to retrieve.
 function get(type, id)
    if type == nil or id == nil then
-      error('flaw.provider.provider_get: invalid information.')
+      flaw.helper.debug.error('flaw.provider.provider_get: invalid information.')
    else
       return _providers_cache[type] ~= nil
          and _providers_cache[type][id] or nil

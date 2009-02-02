@@ -41,14 +41,13 @@ Before anything else, insert require('flaw') in your configuration file.
 
 .SH DIAGNOSTICS
 .B flaw
-should output in .xsession-errors any useful warning, but this is not
-the case yet.
+tries to recover upon bad invocations.  When something wrong occurs, it
+outpus warning or error messages to stderr (for example, if awesome
+was started with xsession, output will be found in
+.I ~/.xsession-errors
+).
 .SH BUGS
 Certainly a lot.
-.br
-.B flaw
-currently trashes the whole configuration loading if something was
-wrong and does not provide diagnostics.
 .SH AUTHOR
 David Soulayrol <david.soulayrol at gmail dot net>
 .SH "SEE ALSO"

@@ -3,7 +3,6 @@
 -- @author David 'd_rol' Soulayrol &lt;david.soulayrol@gmail.com&gt;
 
 -- Grab environment.
-local error = error
 local ipairs = ipairs
 local pairs = pairs
 local setmetatable = setmetatable
@@ -37,7 +36,8 @@ local _gadgets_cache = {}
 -- Create a new entry in the gadgets cache.
 function register(c, pc, p, o)
    if c == nil or c.type == nil then
-      error('flaw.gadget.record: invalid class.')
+      flaw.helper.debug.error('flaw.gadget.record: invalid class.')
+      return
    end
 
    -- Store default important values.
@@ -60,13 +60,14 @@ end
 -- @return the gadget stored, or nil.
 function add(g)
    if g == nil or g.type == nil or g.id == nil then
-      error('flaw.gadget.add: invalid gadget.')
+      flaw.helper.debug.error('flaw.gadget.add: invalid gadget.')
+   else
+      if _gadgets_cache[g.type] == nil then
+         flaw.helper.debug.error('flaw.gadget.add: unknown gadget class: ' .. g.type)
+      end
+      _gadgets_cache[g.type][g.id] = g
+      return g
    end
-   if _gadgets_cache[g.type] == nil then
-      error('flaw.gadget.add: unknown gadget class: ' .. g.type)
-   end
-   _gadgets_cache[g.type][g.id] = g
-   return g
 end
 
 -- Retrieve a gadget from the cache using a type and an identifier.
@@ -74,7 +75,7 @@ end
 -- @param id the identifier of the gadget to retrieve.
 function get(type, id)
    if type == nil or id == nil then
-      error('flaw.gadget.get: invalid information.')
+      flaw.helper.debug.error('flaw.gadget.get: invalid information.')
    else
       return _gadgets_cache[type] ~= nil
          and _gadgets_cache[type].instances[id] or nil
@@ -84,7 +85,8 @@ end
 -- Create a new gadget.
 function new(type, id, p, o)
    if type == nil or id == nil then
-      error('flaw.gadget.new: invalid information.')
+      flaw.helper.debug.error('flaw.gadget.new: invalid information.')
+      return
    end
 
    local entry = _gadgets_cache[type]
