@@ -86,12 +86,12 @@ end
 function new(type, id, p, o)
    if type == nil or id == nil then
       flaw.helper.debug.error('flaw.gadget.new: invalid information.')
-      return
+      return nil
    end
 
    local entry = _gadgets_cache[type]
    if entry == nil then
-      -- print('flaw.gadget.new: unknown gadget class: ' .. type)
+      flaw.helper.debug.error('flaw.gadget.new: unknown gadget class: ' .. type)
       return nil
    end
 
