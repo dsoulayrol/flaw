@@ -1,4 +1,4 @@
--- flaw, an OO configuration framework for Awesome WM widgets.
+-- flaw, a Lua OO management framework for Awesome WM widgets.
 -- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify

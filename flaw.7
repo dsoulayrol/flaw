@@ -3,7 +3,7 @@
 .\"
 .TH flaw 7 "FEBRUARY 2009"
 .SH NAME
-flaw \- a Lua OO framework to handle widgets in awesome
+flaw \- a Lua OO management framework for awesome WM widgets
 .SH DESCRIPTION
 .B flaw
 stands for Fully Loaded AWesome.  It is a LUA object oriented library
@@ -12,21 +12,31 @@ at being simple and resources efficient.
 .sp
 To achieve these goals,
 .B flaw
-provides the following objects.
-.IP flaw.gadget
-A wrapper around an awesome widget, which also contains properties, a
-refresh mechanism and a data provider (see below).
+provides the following concepts.
+.IP gadgets
+To add functionality to awesome widgets,
 .B flaw
-provides many gadgets which can wrap text boxes, image boxes
-or graphs.
-.IP flaw.provider
-A utility to minimize the widgets updates needs.  A provider can be
-used by one or multiple gadgets.  It maintains status data from the
-system and refreshes only when necessary (ie. when the widget with the
-shortest refresh rate demands it).
-.P
-The provider is handled internally by each gadget, so the gadgets are
-normally the only useful objects for the user.
+defines gadget objects, which are a wrapper around a widget.  All
+gadgets have properties, events, a refresh mechanism and a data
+provider (see below).  Gadgets can wrap all awesome widget type,
+namely text boxes, image boxes or graphs.
+.B flaw
+provides many gadgets for common system information (like CPU or
+memory activity).
+.IP provider
+.B flaw
+tries to minimise system access and data refresh.  Since all
+information do not have the same expiration rate, all gadgets refresh
+independently.  And since some gadgets can share information, all data
+is provided by providers which can be shared among gadgets.  Providers
+maintain status data from the system and refreshes only when necessary
+(ie. when the gadget with the shortest refresh rate demands it).
+.IP events
+Events are a way for the user to modify the gadget behaviour or
+properties when some conditions are met.  An event is composed of a
+trigger, which computes the condition, and an action.  Event triggers
+are tested by the providers only when data changes.  Both the
+condition and the action are provided by the user.
 .SH USAGE
 Before anything else, insert require('flaw') in your configuration file.
 .SS The flaw API
