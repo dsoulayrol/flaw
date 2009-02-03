@@ -1,12 +1,24 @@
--- A full OO configuration system for Awesome WM.
--- Licensed under the GPL v3.
--- @author David 'd_rol' Soulayrol &lt;david.soulayrol@gmail.com&gt;
+-- flaw, a Lua OO management framework for Awesome WM widgets.
+-- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 -- Grab environment.
 local io = io
 local math = math
 local tonumber = tonumber
-local tostring = tostring -- For DEBUG only.
 
 local beautiful = require('beautiful')
 local naughty = require('naughty')
@@ -18,11 +30,19 @@ local flaw = {
 }
 
 
--- Battery module implementation
+--- Battery information gadgets and provider.
 --
+-- <br/><br/>
 -- This module contains a provider for battery information and two
 -- gadgets: a text gadget and an icon gadget.
+--
+-- <br/><br/>
+-- <b>TODO:</b> provide documentation on battery gadgets.
+--
+-- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
+-- @copyright 2009, David Soulayrol
 module('flaw.battery')
+
 
 -- Battery statuses.
 STATUS_UNKNOWN = '='
@@ -30,13 +50,32 @@ STATUS_PLUGGED = '(A/C)'
 STATUS_CHARGING = '^'
 STATUS_DISCHARGING = 'v'
 
--- The battery provider.
-BatteryProvider = flaw.provider.Provider:new{ type = _NAME, data = {} }
+--- The battery provider prototype.
+--
+-- <br/><br/>
+-- The battery provider type is set to battery._NAME. Its status data
+-- are read from the files found under
+-- <code>/sys/class/power_supply/&lt;BAT_ID&gt;</code>.
+--
+-- <br/><br/>
+-- The battery provider data is composed of two fields.
+-- <ul>
+-- <li><code>load</code><br/>
+-- The current battery load in percents.</li>
+-- <li><code>status</code><br/>
+-- presents the current power supply utilisation. Its value can be
+-- <code>STATUS_PLUGGED</code> if AC adaptor is in use and there is no
+-- activity on the battery, <code>STATUS_CHARGING</code> if the
+-- battery is in charge, or <code>STATUS_DISCHARGING</code> if the
+-- battery is currently the only power supply.</li>
+--  </ul>
+-- @class table
+-- @name BatteryProvider
+BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
 BatteryProvider.data.load = '0'
 BatteryProvider.data.status = ''
 
--- Callback for provider refresh.
--- See Provider:do_refresh.
+--- Callback for provider refresh.
 function BatteryProvider:do_refresh()
    local load
    local raw_status
@@ -81,9 +120,16 @@ function BatteryProvider:do_refresh()
    self.data.status = status
 end
 
--- A factory for battery providers.
+--- A factory for battery providers.
+--
+-- <br/><br/>
 -- Only one provider is built for a slot. Created providers are stored
--- in the provider cache. See provider.add ant provider.get.
+-- in the global provider cache.
+--
+-- @param  slot the identifier of the battery for which the new
+--         provider should gather information
+-- @return a brand new battery provider, or an existing one if the
+--         given slot was already used to create one.
 function BatteryProviderFactory(slot)
    local p = flaw.provider.get(_NAME, slot)
    -- Create the provider if necessary.
@@ -94,14 +140,14 @@ function BatteryProviderFactory(slot)
    return p
 end
 
--- A Text gadget for battery status display.
+-- A Text gadget prototype for battery status display.
 flaw.gadget.register(
    flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
    BatteryProviderFactory,
    { pattern = '$load% $status' }
 )
 
--- An icon gadget for battery status display.
+-- An icon gadget prototype for battery status display.
 BatteryIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.imagebox' }
 
 function BatteryIconGadget:update()

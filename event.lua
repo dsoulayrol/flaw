@@ -85,11 +85,13 @@ function Trigger:test(data)
 end
 
 --- The latch trigger prototype.
+--
 -- <br/><br/>
 -- The latch trigger starts the event it belongs to only when the
 -- condition becomes true. That is, while the condition remains true,
 -- the event is started exactly once. It will be started again only if
 -- the condition becomes false again and then true.
+--
 -- <br/><br/>
 -- @class table
 -- @name LatchTrigger
@@ -106,10 +108,12 @@ function LatchTrigger:test(data)
 end
 
 --- The edge trigger prototype.
+--
 -- <br/><br/>
 -- The edge trigger starts the event it belongs to only when the
 -- condition result changes. That is, the event is started each time
 -- the condition becomes true or becomes false.
+--
 -- <br/><br/>
 -- @class table
 -- @name EdgeTrigger
