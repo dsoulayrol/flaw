@@ -1,46 +1,63 @@
-This is Flaw, an OO framework to handle Awesome widgets.
+This is Flaw, a Lua OO management framework for Awesome WM widgets.
 
-Flaw stands for Fully Loaded AWesome. It is an object oriented
-framework which aims at helping creating widgets for Awesome
-wiboxes.
+Flaw stands for Fully Loaded AWesome. It is a LUA object oriented
+library providing a thin abstraction layer above awesome widgets and
+refresh mechanisms. It is aimed at being simple and resources
+efficient.
 
-- Flaw provides gadgets, which are a layer above Awesome widgets. A
-  gadget is a widget augmented with properties, and a provider.
+To learn more, please read the provided flaw(7) man page. You can read
+it without installing it on the system using one of the following
+commands:
 
-- Providers are a solution to minimize the widgets updates needs. A
-provider can be used by multiple widgets. A provider maintains status
-data from the system and refreshes only when necessary.
+  man -l flaw.7
+  groff -t -mandoc -Tascii flaw.7 | less
 
-Example:
+Flaw also comes with inline documentation. If you have Luadoc
+installed, you can use the following command to extract HTML
+documentation pages.
 
-require('flaw')
+  luadoc -d html --nofiles *.lua
 
-...
+For the most impatient or curious, here is a quick glance at flaw
+usage:
 
--- Create battery monitor
-w_batteryicon = flaw.gadget.new(
-   'flaw.battery.imagebox', 'BAT0',
-   {
-      images = {
-         [flaw.battery.STATUS_UNKNOWN] = image(beautiful.battery_icon),
-         [flaw.battery.STATUS_PLUGGED] = image(beautiful.battery_icon),
-         [flaw.battery.STATUS_CHARGING] = image(beautiful.battery_icon),
-         [flaw.battery.STATUS_DISCHARGING] = image(beautiful.battery_icon)
-      }
-   },
-   {}
-).widget
-w_batterybox = flaw.gadget.new(
-   'flaw.battery.textbox', 'BAT0').widget
+  require('flaw')
 
--- Create network monitor
-w_netbox = flaw.gadget.new(
-   'flaw.network.textbox', 'wlan0', { pattern = '[$net_in]' }).widget
+  -- Create battery monitor icon
+  g_bat_icon = flaw.gadget.new('flaw.battery.imagebox', 'BAT0')
+  g_bat_icon.add_event(
+    flaw.event.LatchTriger:new{condition = function(d) return d.load < 75 end},
+    function(g) g.widget.image = image(beautiful.battery_icon) end
+  )
+  g_bat_icon.add_event(
+    flaw.event.LatchTriger:new{condition = function(d) return d.load < 25 end},
+    function(g) g.widget.image = image(beautiful.battery_low_icon) end
+  )
+  g_bat_icon.add_event(
+    flaw.event.LatchTriger:new{condition = function(d) return d.load < 10 end},
+    function(g) naughty.notify{
+      title = "Battery Warning",
+      text = "Battery low! " .. g.provider.data.load .. "% left!",
+      timeout = 5, position = "top_right",
+      fg = beautiful.fg_focus, bg = beautiful.bg_focus} end
+  )
+  g_bat_icon.add_event(
+    flaw.event.LatchTriger:new{condition =
+      function(d) return d.status == flaw.battery.STATUS_CHARGING end},
+    function(g) g.widget.image = image(beautiful.battery_load_icon) end
+  )
 
-    conf.screens[s].wibox.widgets = {
-       ...,
-       w_batteryicon,
-       w_batterybox,
-       w_netbox,
-       ...
-    }
+  -- Create battery monitor textbox
+  g_bat_text = flaw.gadget.new('flaw.battery.textbox', 'BAT0')
+  g_bat_text.add_event(
+    flaw.event.LatchTriger:new{ condition = function(d) return d.load < 10 end },
+    function(g) g.pattern = '<bg color="#ff6565"/>$load%' end
+  )
+
+  wibox.widgets = {
+    g_bat_icon.widget,
+    w_bat_text.widget,
+  }
+
+
+-- David Soulayrol <david.soulayrol AT gmail DOT net>
