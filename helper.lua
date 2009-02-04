@@ -190,3 +190,11 @@ function debug.display(message)
       timeout = 5
    }
 end
+
+function debug.warn(message)
+   io.stderr:write(os.date('%A %d %B %H:%M:%S') .. ' WARNING: ' .. tostring(message) .. '\n')
+end
+
+function debug.error(message)
+   io.stderr:write(os.date('%A %d %B %H:%M:%S') .. ' ERROR: ' .. tostring(message) .. '\n')
+end
