@@ -6,6 +6,7 @@
 -- Grab environment.
 local os = os
 local setmetatable = setmetatable
+local table = table
 
 local awful = {
    hooks = require('awful.hooks')
@@ -24,12 +25,14 @@ module('flaw.provider')
 
 -- The Provider prototype provides common behaviour and properties for
 -- widgets in a Flaw configuration.
-Provider = { type = 'unknown', id = nil, data = nil, interval = 5, timeout = 0 }
+Provider = { type = 'unknown', id = nil, interval = 5, timeout = 0 }
 
 -- Provider constructor.
 -- @param o a table with default values.
 function Provider:new(o)
    o = o or {}
+   o.data = {}
+   o.triggers = { activated = {}, all = {} }
    setmetatable(o, self)
    self.__index = self
    return o
@@ -44,6 +47,13 @@ function Provider:set_interval(interval)
    return false
 end
 
+-- Update provider interval.
+function Provider:add_trigger(t)
+   if t ~= nil then
+      table.insert(self.triggers.all, t)
+   end
+end
+
 -- Check whether cached data are no more valid.
 function Provider:is_dirty()
    return self.timeout < os.time()
@@ -53,10 +63,15 @@ end
 function Provider:refresh()
    if self:is_dirty() then
       self:do_refresh()
+      self.triggers.activated = {}
+      for i, t in ipairs(self.triggers.all) do
+         if t:test(self.provider.data) then
+            table.insert(self.triggers.activated, t)
+         end
+      end
       self.timeout = os.time() + self.interval
-      return true
    end
-   return false
+   return self.triggers.activated
 end
 
 -- Callback for provider refresh. This function is called if

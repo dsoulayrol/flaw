@@ -141,6 +141,7 @@ Gadget = { type = 'unknown.unknown', id = nil, widget = nil, provider = nil }
 --        id and widget.
 function Gadget:new(o)
    o = o or {}
+   o.events = {}
    setmetatable(o, self)
    self.__index = self
    return o
@@ -160,9 +161,35 @@ function Gadget:register(delay)
    awful.hooks.timer.register(delay, function() self:update() end, true)
 end
 
--- Callback for gadget refresh. This function is called by awful if
--- the gadget has been registered to tick events.
+--- Register an event to the gadget.
+-- @param t the event trigger.
+-- @param a the action taken upon the event occurence.
+-- @see event.lua.
+function Gadget:add_event(t, a)
+   if t == nil or a == nil then
+      -- TODO: log an error.
+   else
+      self.events[t] = a
+      if self.provider ~= nil then
+         self.provider.add_trigger(t)
+      end
+   end
+end
+
+-- Callback for gadget refresh.
+--
+-- This function is called by awful if the gadget has been registered
+-- to awful time events. It first asks the gadget provider to refresh
+-- itself, and then applies any triggered event. At last, it calls its
+-- own refresh function.
 function Gadget:update()
+   if self.provider ~= nil then
+      local triggered = self.provider:refresh()
+      for i, t in ipairs(triggered) do
+         self.events[t](self)
+      end
+      if self.redraw then self:redraw() end
+   end
 end
 
 -- Retrieve the type of the widget used by this gadget.
@@ -180,7 +207,7 @@ TextGadget = Gadget:new{ type = 'unknown.textbox', widget = nil, pattern = nil }
 -- the pattern directly on the provider data. But if the gadget ID is
 -- a key of the provider data, then the update is achieved by applying
 -- the pattern to the content of this entry.
-function TextGadget:update()
+function TextGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
       self.provider:refresh()
       local data_set = self.provider.data[self.id] or self.provider.data
@@ -197,7 +224,7 @@ GraphGadget = Gadget:new{ type = 'unknown.graph', widget = nil, values = {} }
 -- the pattern directly on the provider data. But if the gadget ID is
 -- a key of the provider data, then the update is achieved by applying
 -- the pattern to the content of this entry.
-function GraphGadget:update()
+function GraphGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
       self.provider:refresh()
       local data_set = self.provider.data[self.id] or self.provider.data
