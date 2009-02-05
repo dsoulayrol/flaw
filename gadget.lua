@@ -1,6 +1,19 @@
--- A full OO configuration system for Awesome WM.
--- Licensed under the GPL v3.
--- @author David 'd_rol' Soulayrol &lt;david.soulayrol@gmail.com&gt;
+-- flaw, a Lua OO management framework for Awesome WM widgets.
+-- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 -- Grab environment.
 local ipairs = ipairs
@@ -8,7 +21,6 @@ local pairs = pairs
 local setmetatable = setmetatable
 local string = string
 local tonumber = tonumber
-local tostring = tostring -- For Debug only.
 
 local capi = {
    widget = widget,
@@ -23,41 +35,146 @@ local flaw = {
 }
 
 
--- Gadgets handling for Flaw.
+--- Gadgets handling for <b>flaw</b>.
 --
--- Common behaviours for Flaw gadgets and high level gadget
--- definitions.
+-- <br/><br/>
+-- To add functionality to awesome widgets, <b>flaw</b> defines gadget
+-- objects, which are a wrapper around a widget. Gadgets have
+-- properties, events, a refresh mechanism and a data provider. They
+-- can wrap all awesome widget types, namely text boxes, image boxes
+-- or graphs. <b>flaw</b> provides many gadgets for common system
+-- information (like battery, CPU or memory activity) in different
+-- modules. This one contains the core gadget prototypes and functions.
+--
+-- <br/><br/>
+-- A gadget is identified by its type and an identifier, which must
+-- remain unique for one type. The gadget type MUST be composed of two
+-- parts. The first part represents the module this gadget is part of
+-- and can be composed of any character. The second part, separated
+-- from the first one by a dot, is the kind of widget used internally
+-- (ie. graph or textbox). It MUST match exactly a widget type as
+-- defined in Awful API. Thus, it is common to create a new gadget
+-- prototype this way:
+--
+-- <br/><code>&nbsp;&nbsp;&nbsp;
+-- flaw.gadget.Gadget:new{ type = _NAME .. '.textbox' }</code>
+--
+-- <br/><br/>
+-- Note that for the sake of simplicity, the above sample creates a
+-- prototype from the <a href='#Gadget'><code>Gadget</code></a> one,
+-- which you rarely should have to do since this module provides
+-- specialised prototypes for all the awesome widget types. These
+-- prototypes are <a href='#TextGadget'><code>TextGadget</code></a>,
+-- <a href='#GraphGadget'><code>GraphGadget</code></a> and <a
+-- href='#IconGadget'><code>IconGadget</code></a>. They provide the
+-- raw gadgets mechanisms adapted to the type of widget they wrap.
+--
+-- <br/><br/>
+-- All created gadgets are kept in a <a href='#_gadgets_cache'>global
+-- store</a> from which they can be retrieved anytime. This store
+-- knows not only about gadgets instance, but also about their
+-- prototype, their provider, and defaults properties.
+--
+-- <br/><br/>
+-- <b>TODO: Procedure to write a new gadget prototype</b>
+--
+-- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
+-- @copyright 2009, David Soulayrol
 module('flaw.gadget')
 
 
--- Global gadgets storage management.
+--- Global gadgets store.
+--
+-- <br/><br/>
+-- This table stores all the registered prototypes as well as all the
+-- gagdet instances. The store behaves like a dictionnary where the
+-- keys are prototype types and entries a table which contains:
+-- <ul>
+-- <li>The prototype itself.</li>
+-- <li>A factory for the provider used by the prototype.</li>
+-- <li>A table of instances.</li>
+-- <li>A table of default values to be set on each new instance.</li>
+-- </ul>
+--
+-- <br/>
+-- This table is private to the <code>gadget</code> module. It can be
+-- accessed using the <a href='#get'><code>get</code></a>, <a
+-- href='#set'><code>set</code></a> and <a
+-- href='#register'><code>register</code></a> functions of this
+-- module.
+--
+-- @class table
+-- @name _gadgets_cache
 local _gadgets_cache = {}
 
--- Create a new entry in the gadgets cache.
-function register(c, pc, p, o)
-   if c == nil or c.type == nil then
+--- Store a gadget prototype.
+--
+-- <br/><br/>
+-- This function creates a new entry in the global store. This entry
+-- retains the given prototype, provider factory and defaults tables
+-- and associates a gadget instance table to them.
+--
+-- <br/><br/>
+-- The function fails if the given prototype is nil or has a nil type.
+-- Before storing the defaults tables, it checks and eventually
+-- creates mandatory default options:
+-- <ul>
+-- <li><code>gopt.delay</code><br/>
+-- This is the gadget refresh rate. Its default value is 10 seconds.</li>
+-- <li><code>wopt.alignment</code><br/>
+-- This is the value to set in widget align property when creating the
+-- gadget. It defaults to 'right'.</li>
+-- </ul>
+--
+-- <br/>
+-- Note that unless you create your own gadget prototype, you do not
+-- have to call this function. Also note that the current
+-- implementation silently overwrites the previous entry if it
+-- existed.
+--
+-- <br/><br/>
+-- @param  p the prototype to register.
+-- @param  pf the provider factory to use when creating a new gadget
+--         using this new prototype.
+-- @param  gopt the default prototype options.
+-- @param  wopt the default options for the wrapped widget.
+function register(p, pf, gopt, wopt)
+   if p == nil or p.type == nil then
       flaw.helper.debug.error('flaw.gadget.record: invalid class.')
       return
    end
 
    -- Store default important values.
-   p = p or {}
-   if p.delay == nil then p.delay = 10 end
+   gopt = gopt or {}
+   if gopt.delay == nil then gopt.delay = 10 end
 
-   o = o or {}
-   if o.alignment == nil then o.alignment = 'right' end
+   wopt = wopt or {}
+   if wopt.alignment == nil then wopt.alignment = 'right' end
 
-   _gadgets_cache[c.type] = {
-      prototype = c,
-      provider = pc,
+   _gadgets_cache[p.type] = {
+      prototype = p,
+      provider = pf,
       instances = {},
-      defaults = { gadget = p, widget = o }
+      defaults = { gadget = gopt, widget = wopt }
    }
 end
 
--- Add a gadget to the cache.
--- @param g the gadget to store.
--- @return the gadget stored, or nil.
+--- Store a gadget instance.
+--
+-- <br/><br/>
+-- This function stores the given instance in the global gadgets
+-- store. It fails if the instance is invalid, that is if it is nil
+-- or if its type or its ID is nil. It also fails if the store has no
+-- entry for this gadget type.
+--
+-- <br/><br/>
+-- You normally do not have to call this function since it is silently
+-- invoked each time you call the gadget factory <a
+-- href='#new'><code>new</code></a> function.
+--
+-- <br/><br/>
+-- @param  g the gadget to store.
+-- @return The gadget stored, or nil if the given gadget could not be stored.
 function add(g)
    if g == nil or g.type == nil or g.id == nil then
       flaw.helper.debug.error('flaw.gadget.add: invalid gadget.')
@@ -68,22 +185,57 @@ function add(g)
       _gadgets_cache[g.type][g.id] = g
       return g
    end
+   return nil
 end
 
--- Retrieve a gadget from the cache using a type and an identifier.
--- @param type the type of the gadget to retrieve.
--- @param id the identifier of the gadget to retrieve.
+--- Retrieve a gadget instance.
+--
+-- <br/><br/>
+-- This function returns the gadget matching the given information. It
+-- immediately fails if the given type or identifier is nil. It also
+-- fails if no gadget in the store matches the given parameters.
+--
+-- <br/><br/>
+-- @param  type the type of the gadget to retrieve.
+-- @param  id the uniquer identifier of the gadget to retrieve.
+-- @return The matching gadget instance, or nil if information was
+--         incomplete or if there is no such gadget.
 function get(type, id)
-   if type == nil or id == nil then
-      flaw.helper.debug.error('flaw.gadget.get: invalid information.')
-   else
-      return _gadgets_cache[type] ~= nil
-         and _gadgets_cache[type].instances[id] or nil
+   if type ~= nil and id ~= nil then
+      return _gadgets_cache[type] ~= nil and _gadgets_cache[type].instances[id]
    end
+   flaw.helper.debug.error('flaw.gadget.get: invalid information.')
+   return nil
 end
 
--- Create a new gadget.
-function new(type, id, p, o)
+--- Create a new gadget.
+--
+-- <br/><br/>
+-- This function is the only gadget factory and the main <b>flaw</b>
+-- interface for a user to build its <i>wibox</i>. It immediately
+-- fails if given type or identifier is nil, or if no such type was
+-- registered in the store. If it was, the gadget is created from the
+-- data available in the matching store entry.
+--
+-- <br/><br/>
+-- If a matching entry is found in the store, the function first
+-- completes the given options tables with the defaults found in the
+-- entry. Then it creates the gadget using the found prototype and
+-- provider factory, and applies the options tables to the gadget and
+-- the wrapped widget respectively. At last, it starts the gadget
+-- monitoring with the mandatory <code>delay</code> gadget option and
+-- stores it in the store entry instances table.
+--
+-- <br/><br/>
+-- @param  type the type of the gadget to create.
+-- @param  id the uniquer identifier of the gadget to create.
+-- @param  gopt the options to pass to the created gadget.
+-- @param  wopt the options to pass to the created wrapped widget.
+-- @return A brand new gadget instance, or nil it was not successfully
+--         created. Note that the returned widget is present in the
+--         gadget store and can be retrieved with the <a
+--         href='#get'><code>get</code></a> function from now on.
+function new(type, id, gopt, wopt)
    if type == nil or id == nil then
       flaw.helper.debug.error('flaw.gadget.new: invalid information.')
       return nil
@@ -96,20 +248,20 @@ function new(type, id, p, o)
    end
 
    -- Load default parameters.
-   p = p or {}
-   o = o or {}
+   gopt = gopt or {}
+   wopt = wopt or {}
    for k in pairs(entry.defaults.gadget) do
-      p[k] = p[k] or entry.defaults.gadget[k]
+      gopt[k] = gopt[k] or entry.defaults.gadget[k]
    end
    for k in pairs(entry.defaults.widget) do
-      o[k] = o[k] or entry.defaults.widget[k]
+      wopt[k] = wopt[k] or entry.defaults.widget[k]
    end
 
    -- Create the widget.
    local proto = entry.prototype
    local g = proto:new{
       id = id,
-      provider = _gadgets_cache[type].provider(id),
+      provider = proto.provider(id),
       widget = capi.widget{
          type = proto:get_widget_type(),
          name = id,
@@ -117,8 +269,8 @@ function new(type, id, p, o)
    }
 
    -- Configure the gadget.
-   for k in pairs(p) do g[k] = p[k] end
-   for k in pairs(o) do g.widget[k] = o[k] end
+   for k in pairs(gopt) do g[k] = gopt[k] end
+   for k in pairs(wopt) do g.widget[k] = wopt[k] end
 
    -- Start monitoring.
    g:register(p.delay)
@@ -126,19 +278,29 @@ function new(type, id, p, o)
    return add(g)
 end
 
--- The Gadget prototype provides common behaviour and properties for
--- widgets in a Flaw configuration.
---
--- The gadget type MUST be composed of two parts. The first represents
--- the module this gadget is part of and can be composed of any
--- character. The second, separated from the first one by a dot, is
--- the kind of widget used internally (ie. graph or textbox). It MUST
--- match exactly a widget type as defined in Awful API.
-Gadget = { type = 'unknown.unknown', id = nil, widget = nil, provider = nil }
 
--- Gadget constructor.
--- @param o a table with default values. Most useful keys are type,
---        id and widget.
+--- The Gadget prototype.
+--
+-- <br/><br/>
+-- This is the root prototype of all gadgets. It provides common
+-- methods for events and refresh handling. The only property, other
+-- than <code>type</code> and <code>id</code>, handled by this object
+-- is <code>delay</code>, the refresh rate of the gadget.
+--
+-- @class table
+-- @name Gadget
+Gadget = { type = 'unknown.unknown' }
+
+--- Gadget constructor.
+--
+-- <br/><br/>
+-- Note that this constructor is only used internally, or to create
+-- new gadget prototypes. To create gadget instances, you should use
+-- the gadget factory <a href='#new'><code>new</code></a> function.
+--
+-- <br/><br/>
+-- @param  o a table with default values.
+-- @return The brand new gadget.
 function Gadget:new(o)
    o = o or {}
    o.events = {}
@@ -147,9 +309,15 @@ function Gadget:new(o)
    return o
 end
 
--- Hook the gadget to tick events.
--- @param delay the delay between gadget updates in seconds
---        (default value is 10).
+--- Hook the gadget to clock events.
+--
+-- <br/><br/>
+-- This method is called automatically by the <a
+-- href='#new'><code>new</code></a> function, with the mandatory
+-- <code>delay</code> argument of its <code>gopt</code> options table.
+--
+-- <br/><br/>
+-- @param  delay the delay between gadget updates in seconds.
 function Gadget:register(delay)
    delay = delay or 10
 
@@ -162,9 +330,10 @@ function Gadget:register(delay)
 end
 
 --- Register an event to the gadget.
--- @param t the event trigger.
--- @param a the action taken upon the event occurence.
--- @see event.lua.
+--
+-- <br/><br/>
+-- @param  t the event trigger.
+-- @param  a the action taken upon the event occurrence.
 function Gadget:add_event(t, a)
    if t == nil or a == nil then
       -- TODO: log an error.
@@ -176,12 +345,13 @@ function Gadget:add_event(t, a)
    end
 end
 
--- Callback for gadget refresh.
+--- Callback for gadget update.
 --
+-- <br/><br/>
 -- This function is called by awful if the gadget has been registered
 -- to awful time events. It first asks the gadget provider to refresh
 -- itself, and then applies any triggered event. At last, it calls its
--- own refresh function.
+-- own redraw function, if defined.
 function Gadget:update()
    if self.provider ~= nil then
       local triggered = self.provider:refresh()
@@ -192,38 +362,68 @@ function Gadget:update()
    end
 end
 
--- Retrieve the type of the widget used by this gadget.
+--- Retrieve the wrapped widget type.
 function Gadget:get_widget_type()
    return string.match(self.type, '.*%.(%a+)')
 end
 
 
--- The TextGadget prototype provides a pattern mechanism.
-TextGadget = Gadget:new{ type = 'unknown.textbox', widget = nil, pattern = nil }
-
--- Callback for gadget refresh. See Gadget:update.
+--- The text boxes wrapper gadget.
 --
+-- <br/><br/>
+-- This specialised gadget relies on a pattern property which is used
+-- to format the text output. The provider data are used when parsing
+-- the pattern. See <a
+-- href='flaw.helper.html#strings.format'><code>helper.strings.format</code></a>
+-- to understand how the pattern is used to build the output.
+--
+-- @class table
+-- @name TextGadget
+TextGadget = Gadget:new{ type = 'unknown.textbox' }
+
+--- Specialised callback for text gadget update.
+--
+-- <br/><br/>
 -- This implementation support two data models. First, it can apply
--- the pattern directly on the provider data. But if the gadget ID is
--- a key of the provider data, then the update is achieved by applying
--- the pattern to the content of this entry.
+-- the gadget pattern directly on the provider data table. But if the
+-- gadget identifier is a key of the provider data, then the gadget
+-- pattern is applied using the content of this entry only in the
+-- provider data set.
+--
+-- <br/><br/>
+-- @see Gadget:update
 function TextGadget:redraw()
+   local data_set = {}
    if self.provider ~= nil and self.provider.data ~= nil then
       self.provider:refresh()
-      local data_set = self.provider.data[self.id] or self.provider.data
+      data_set = self.provider.data[self.id] or self.provider.data
+   end
+   if self.pattern ~= nil then
       self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
    end
 end
 
--- The GraphGadget prototype provides a list of values to plot.
-GraphGadget = Gadget:new{ type = 'unknown.graph', widget = nil, values = {} }
-
--- Callback for gadget refresh. See Gadget:update.
+--- The graphs wrapper gadget.
 --
--- This implementation support two data models. First, it can apply
--- the pattern directly on the provider data. But if the gadget ID is
--- a key of the provider data, then the update is achieved by applying
--- the pattern to the content of this entry.
+-- <br/><br/>
+-- This specialised gadget proposes a list of data values to track
+-- from the provider data and to plot.
+--
+-- @class table
+-- @name GraphGadget
+GraphGadget = Gadget:new{ type = 'unknown.graph' }
+
+--- Specialised callback for graph gadget update.
+--
+-- <br/><br/>
+-- This implementation support two data models. First, it can search
+-- the gadget values directly on the provider data table. But if the
+-- gadget identifier is a key of the provider data, then the gadget
+-- values is searched using the content of this entry only in the
+-- provider data set.
+--
+-- <br/><br/>
+-- @see Gadget:update
 function GraphGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
       self.provider:refresh()
@@ -235,5 +435,13 @@ function GraphGadget:redraw()
 end
 
 
--- The IconGadget prototype provides a simple icon view.
-IconGadget = Gadget:new{ type = 'unknown.imagebox', images = {} }
+--- The image boxes wrapper gadget.
+--
+-- <br/><br/>
+-- This specialised gadget is a placeholder for specific icon
+-- treatments. For now, it brings nothing. Interesting stuff can be
+-- handled using the events mechanism.
+--
+-- @class table
+-- @name IconGadget
+IconGadget = Gadget:new{ type = 'unknown.imagebox' }
