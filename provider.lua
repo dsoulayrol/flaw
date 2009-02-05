@@ -184,15 +184,15 @@ end
 
 -- Refresh the provider status if necessary.
 function Provider:refresh()
+   self.triggers.activated = {}
    if self:is_dirty() then
       self:do_refresh()
-      self.triggers.activated = {}
+      self.timeout = os.time() + self.interval
       for i, t in ipairs(self.triggers.all) do
-         if t:test(self.provider.data) then
+         if t:test(self.data) then
             table.insert(self.triggers.activated, t)
          end
       end
-      self.timeout = os.time() + self.interval
    end
    return self.triggers.activated
 end

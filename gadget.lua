@@ -182,7 +182,7 @@ function add(g)
       if _gadgets_cache[g.type] == nil then
          flaw.helper.debug.error('flaw.gadget.add: unknown gadget class: ' .. g.type)
       end
-      _gadgets_cache[g.type][g.id] = g
+      _gadgets_cache[g.type].instances[g.id] = g
       return g
    end
    return nil
@@ -261,11 +261,11 @@ function new(type, id, gopt, wopt)
    local proto = entry.prototype
    local g = proto:new{
       id = id,
-      provider = proto.provider(id),
+      provider = entry.provider(id),
       widget = capi.widget{
          type = proto:get_widget_type(),
          name = id,
-         align = o.alignment }
+         align = wopt.alignment }
    }
 
    -- Configure the gadget.
@@ -273,7 +273,7 @@ function new(type, id, gopt, wopt)
    for k in pairs(wopt) do g.widget[k] = wopt[k] end
 
    -- Start monitoring.
-   g:register(p.delay)
+   g:register(gopt.delay)
 
    return add(g)
 end
@@ -336,11 +336,11 @@ end
 -- @param  a the action taken upon the event occurrence.
 function Gadget:add_event(t, a)
    if t == nil or a == nil then
-      -- TODO: log an error.
+      flaw.helper.debug.error('flaw.gadget.Gadget:add_event: invalid event')
    else
       self.events[t] = a
       if self.provider ~= nil then
-         self.provider.add_trigger(t)
+         self.provider:add_trigger(t)
       end
    end
 end
@@ -356,7 +356,11 @@ function Gadget:update()
    if self.provider ~= nil then
       local triggered = self.provider:refresh()
       for i, t in ipairs(triggered) do
-         self.events[t](self)
+         -- For the moment, the provider returns *all* the triggered
+         -- events, not only those registered from this gadget. This should change.
+         if self.events[t] ~= nil then
+            self.events[t](self)
+         end
       end
       if self.redraw then self:redraw() end
    end
