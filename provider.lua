@@ -132,8 +132,8 @@ end
 --
 -- <br/><br/>
 -- This is the root prototype of all providers. It provides common
--- methods for triggers and refresh handling. It also defines the
--- following mandatory properties.
+-- methods for refresh handling. It also defines the following
+-- mandatory properties.
 -- <ul>
 -- <li><code>interval</code><br/>
 -- This is the provider refresh rate. Its default value is 10 seconds
@@ -154,8 +154,8 @@ Provider = { type = 'unknown', interval = 10, timeout = 0 }
 -- @param o a table with default values.
 function Provider:new(o)
    o = o or {}
-   o.data = {}
-   o.triggers = { activated = {}, all = {} }
+   o.data = o.data or {}
+   o.subscribers = o.subscribers or {}
    setmetatable(o, self)
    self.__index = self
    return o
@@ -170,13 +170,6 @@ function Provider:set_interval(interval)
    return false
 end
 
--- Update provider interval.
-function Provider:add_trigger(t)
-   if t ~= nil then
-      table.insert(self.triggers.all, t)
-   end
-end
-
 -- Check whether cached data are no more valid.
 function Provider:is_dirty()
    return self.timeout < os.time()
@@ -184,17 +177,10 @@ end
 
 -- Refresh the provider status if necessary.
 function Provider:refresh()
-   self.triggers.activated = {}
    if self:is_dirty() then
       self:do_refresh()
       self.timeout = os.time() + self.interval
-      for i, t in ipairs(self.triggers.all) do
-         if t:test(self.data) then
-            table.insert(self.triggers.activated, t)
-         end
-      end
    end
-   return self.triggers.activated
 end
 
 -- Callback for provider refresh. This function is called if
