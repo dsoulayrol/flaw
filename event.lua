@@ -19,7 +19,7 @@
 local setmetatable = setmetatable
 
 
---- Events handling for <b>flaw</b>.
+--- Events handling.
 --
 -- <br/><br/>
 -- Events are a way for the user to modify the gadget behaviour or
