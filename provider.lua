@@ -19,14 +19,13 @@
 local ipairs = ipairs
 local os = os
 local setmetatable = setmetatable
-local table = table
 
 local flaw = {
    helper = require('flaw.helper'),
 }
 
 
---- Providers handling for Flaw.
+--- Providers handling.
 --
 -- <br/><br/>
 -- <b>flaw</b> tries to minimise system access and data refresh.
@@ -139,19 +138,27 @@ end
 -- This is the provider refresh rate. Its default value is 10 seconds
 -- but it is normally updated each time a gadget starts to use the
 -- provider.</li>
--- <li><code>timeout</code><br/>
--- This is the time stamp for the next refresh. The provider only
--- updates itself if asked to do so after this time stamp. Its value
--- is initialised to 0 and is reset each time the provider updates
--- itself.</li>
+-- <li><code>timestamp</code><br/>
+-- This is the time stamp of the current data set. The provider only
+-- updates itself if asked to do so after the <code>interval</code>
+-- value from this time stamp. The timestamp value is initialised to 0
+-- and is reset each time the provider updates itself.</li>
 -- </ul>
 --
 -- @class table
 -- @name Provider
-Provider = { type = 'unknown', interval = 10, timeout = 0 }
+Provider = { type = 'unknown', interval = 10, timestamp = 0 }
 
--- Provider constructor.
--- @param o a table with default values.
+--- Provider constructor.
+--
+-- <br/><br/>
+-- Remember that providers are normally handled automatically when a
+-- gadget is created. This constructor is only used internally, or to
+-- create new gadget prototypes.
+--
+-- <br/><br/>
+-- @param  o a table with default values.
+-- @return The brand new provider.
 function Provider:new(o)
    o = o or {}
    o.data = o.data or {}
@@ -161,29 +168,77 @@ function Provider:new(o)
    return o
 end
 
--- Update provider interval.
-function Provider:set_interval(interval)
-   if interval ~= nil and interval < self.interval then
-      self.interval = interval
+--- Subscribe a gadget to this provider.
+--
+-- <br/><br/>
+-- This is the method a gadget automatically uses, when created by the
+-- gadget factory, to register itself to its provider. By registering
+-- itself, the gadget can ask for a new poll interval to the
+-- provider. The provider will store the new interval if it is
+-- inferior to its current poll delay.
+--
+-- <br/><br/>
+-- This method immediately fails if the given gadget is nil. On
+-- success, the gadget is stored in the provider internal subscribers
+-- list.
+--
+-- <br/><br/>
+-- @param  g the gadget subscriber.
+-- @param  delay the new poll interval asked by the a table with
+--         default values.
+-- @return True if the subscriber was correctly stored, False otherwise.
+function Provider:subscribe(g, delay)
+   if g == nil then
+      flaw.helper.debug.error('flaw.provider.Provider:subscribe: invalid gadget')
+   else
+      self.subscribers[g] = 0
+      if delay ~= nil and delay < self.interval then
+         self.interval = delay
+      end
       return true
    end
    return false
 end
 
--- Check whether cached data are no more valid.
+--- Check whether cached data are still valid.
+--
+-- <br/><br/>
+-- @return True is the provider should refresh its data set, False otherwise.
 function Provider:is_dirty()
-   return self.timeout < os.time()
+   return self.timestamp <= os.time() + self.interval
 end
 
--- Refresh the provider status if necessary.
-function Provider:refresh()
+--- Refresh the provider status if necessary.
+--
+-- <br/><br/>
+-- This is the method invoked by the provider subscribers when they
+-- want to update themselves. The refresh is achieved only if <a
+-- href='#Provider:is_dirty'><code>Provider:is_dirty</code></a>
+-- returns true.
+--
+-- <br/><br/>
+-- This method actually only checks if refresh is necessary, and
+-- eventually invokes another method do to it. The actual refresh
+-- process is dedicated to the <code>do_refresh</code> method, which
+-- is called with no argument. This definition depends on the provider
+-- role, and should be defined in all derived prototypes.
+--
+-- <br/><br/>
+-- @param  g the gadget which is asking for the provider to refresh.
+-- @return True is the provider did refresh its data set since the
+--         given gadget last asked for the refresh.
+function Provider:refresh(g)
    if self:is_dirty() then
-      self:do_refresh()
-      self.timeout = os.time() + self.interval
+      if self.do_refresh then self:do_refresh() end
+      self.timestamp = os.time()
+      if g ~= nil and self.subscribers[g] ~= nil then
+         self.subscribers[g] = self.timestamp
+      return true
+      end
+   else
+      if g ~= nil and self.subscribers[g] ~= nil then
+         return self.subscribers[g] < self.timestamp
+      end
    end
-end
-
--- Callback for provider refresh. This function is called if
--- the provider needs to refresh its data.
-function Provider:do_refresh()
+   return false
 end

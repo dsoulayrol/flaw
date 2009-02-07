@@ -35,7 +35,7 @@ local flaw = {
 }
 
 
---- Gadgets handling for <b>flaw</b>.
+--- Gadgets handling.
 --
 -- <br/><br/>
 -- To add functionality to awesome widgets, <b>flaw</b> defines gadget
@@ -321,9 +321,9 @@ end
 function Gadget:register(delay)
    delay = delay or 10
 
-   -- Update provider delay.
+   -- Subscribe this gadget to the provider.
    if self.provider ~= nil then
-      self.provider.set_interval(delay)
+      self.provider:subscribe(self, delay)
    end
 
    awful.hooks.timer.register(delay, function() self:update() end, true)
@@ -351,7 +351,7 @@ end
 -- own redraw function, if defined.
 function Gadget:update()
    if self.provider ~= nil then
-      if self.provider:refresh() then
+      if self.provider:refresh(self) then
          for t, a in ipairs(self.events) do
             if t:test(self.provider.data) then
                a(self)
@@ -395,7 +395,6 @@ TextGadget = Gadget:new{ type = 'unknown.textbox' }
 function TextGadget:redraw()
    local data_set = {}
    if self.provider ~= nil and self.provider.data ~= nil then
-      self.provider:refresh()
       data_set = self.provider.data[self.id] or self.provider.data
    end
    if self.pattern ~= nil then
@@ -426,7 +425,6 @@ GraphGadget = Gadget:new{ type = 'unknown.graph' }
 -- @see Gadget:update
 function GraphGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
-      self.provider:refresh()
       local data_set = self.provider.data[self.id] or self.provider.data
       for i, v in ipairs(self.values) do
          self.widget:plot_data_add(v, tonumber(data_set[v]))
