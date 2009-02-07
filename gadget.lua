@@ -352,7 +352,7 @@ end
 function Gadget:update()
    if self.provider ~= nil then
       if self.provider:refresh(self) then
-         for t, a in ipairs(self.events) do
+         for t, a in pairs(self.events) do
             if t:test(self.provider.data) then
                a(self)
             end
