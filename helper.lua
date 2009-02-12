@@ -36,6 +36,28 @@ function file.log(line)
    end
 end
 
+-- Load a file with line formatted as "name: value".
+function file.load_state_file(path, name, t)
+   local f = io.open(path .. '/' .. name)
+
+   if f ~= nil then
+      local prefix = name:lower() .. '_'
+      local line = nil
+      repeat
+         line = f:read()
+         if line then
+            n, v = line:match('([%a ]+):%s+([%w ]+)')
+            if n ~= nil and v ~= nil then
+               t[prefix .. n:gsub(' ', '_'):lower()] = v:lower()
+            end
+         end
+      until line == nil
+      f:close()
+      return true
+   end
+   return false
+end
+
 format = {}
 
 function format.set_bg(color, text)
