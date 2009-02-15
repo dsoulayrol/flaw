@@ -337,7 +337,7 @@ function Gadget:update()
       if self.provider:refresh(self) then
          for t, a in pairs(self.events) do
             if t:test(self.provider.data) then
-               a(self)
+               a(self, t)
             end
          end
          if self.redraw then self:redraw() end

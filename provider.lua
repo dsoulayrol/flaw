@@ -192,7 +192,7 @@ end
 --
 -- @return True is the provider should refresh its data set, False otherwise.
 function Provider:is_dirty()
-   return self.timestamp <= os.time() + self.interval
+   return self.timestamp <= os.time() - self.interval
 end
 
 --- Refresh the provider status if necessary.

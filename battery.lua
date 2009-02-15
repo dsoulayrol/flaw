@@ -18,6 +18,7 @@
 -- Grab environment.
 local io = io
 local math = math
+local os = os
 local tonumber = tonumber
 
 local beautiful = require('beautiful')
@@ -140,38 +141,80 @@ STATUS_DISCHARGING = 'v'
 -- @class table
 -- @name BatteryProvider
 BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
-BatteryProvider.data.load = '0'
-BatteryProvider.data.status = ''
+
+-- Load state information from /proc/acpi/battery/<ID>/state if it exists
+function BatteryProvider:load_from_procfs()
+   local r = false
+   local p = self.data.proc
+
+   r = flaw.helper.file.load_state_file(
+      '/proc/acpi/battery/' .. self.id:upper(), 'state', p)
+   r = flaw.helper.file.load_state_file(
+      '/proc/acpi/battery/' .. self.id:upper(), 'info', p) and r
+
+   if r then
+      -- Adapt values.
+      local state = p.state_charging_state or ''
+      local r_capacity = p.state_remaining_capacity:match('(%d+).*') or 0
+      local rate = p.state_present_rate:match('(%d+).*') or 1
+
+      if rate ~= nil and rate ~= 0 then
+         if state == 'discharging' then
+            -- remaining seconds.
+            self.data.seconds = 3600 * r_capacity / rate
+            self.data.time = os.date('!remaining %X', self.data.seconds)
+         elseif state == 'charging' then
+            -- seconds until charged.
+            local l_capacity = p.info_last_full_capacity:match('(%d+).*') or 0
+            self.data.seconds = 3600 * (l_capacity - r_capacity) / rate
+            self.data.time = os.date('!full in %X', self.data.seconds)
+         end
+      end
+   end
+end
+
+-- Load state information from /proc/acpi/battery/<ID>/state if it exists
+function BatteryProvider:load_from_sysfs()
+   local f = nil
+
+   -- Load raw values.
+   local f = io.open("/sys/class/power_supply/" .. self.id .. "/charge_now")
+   if f ~= nil then
+      self.data.sys.charge_now = f:read()
+      f:close()
+   end
+
+   f = io.open("/sys/class/power_supply/" .. self.id .. "/charge_full")
+   if f ~= nil then
+      self.data.sys.charge_full = f:read()
+      f:close()
+   end
+
+   f = io.open("/sys/class/power_supply/" .. self.id .. "/status")
+   if f ~= nil then
+      self.data.sys.status = f:read()
+      f:close()
+   end
+
+   -- Compute interesting values.
+   self.data.load =
+      math.floor(self.data.sys.charge_now * 100 / self.data.sys.charge_full)
+   if self.data.load > 100 then self.data.load = 100 end
+
+   self.data.st_symbol = STATUS_PLUGGED
+
+   if self.data.sys.status:match("Charging") then
+      self.data.st_symbol = STATUS_CHARGING
+   elseif self.data.sys.status:match("Discharging") then
+      self.data.st_symbol = STATUS_DISCHARGING
+   end
+end
 
 --- Callback for provider refresh.
 function BatteryProvider:do_refresh()
-   local load
-   local fcur = io.open("/sys/class/power_supply/" .. self.id .. "/charge_now")
-   local fcap = io.open("/sys/class/power_supply/" .. self.id .. "/charge_full")
-   if fcur ~= nil and fcap ~= nil then
-      load = math.floor(fcur:read() * 100 / fcap:read())
-      if load > 100 then load = 100 end
-      fcur:close()
-      fcap:close()
-   end
-
-   local f_status = io.open("/sys/class/power_supply/" .. self.id .. "/status")
-   local raw_status
-   if f_status ~= nil then
-      raw_status = f_status:read()
-      f_status:close()
-   end
-
-   local status = STATUS_PLUGGED
-
-   if raw_status:match("Charging") then
-      status = STATUS_CHARGING
-   elseif raw_status:match("Discharging") then
-      status = STATUS_DISCHARGING
-   end
-
-   self.data.load = load
-   self.data.status = status
+   -- TODO: Do elect the method to call.
+   self:load_from_sysfs()
+   self:load_from_procfs()
 end
 
 --- A factory for battery providers.
@@ -188,7 +231,13 @@ function BatteryProviderFactory(slot)
    local p = flaw.provider.get(_NAME, slot)
    -- Create the provider if necessary.
    if p == nil then
-      p = BatteryProvider:new{ id = slot }
+      p = BatteryProvider:new{
+         id = slot, data = {
+            load = 0,
+            st_symbol = '',
+            seconds = 0,
+            time = '',
+            sys = {}, proc = {} } }
       flaw.provider.add(p)
    end
    return p
