@@ -16,7 +16,7 @@ Flaw also comes with inline documentation. If you have Luadoc
 installed, you can use the following command to extract HTML
 documentation pages.
 
-  luadoc -d html --nofiles *.lua
+  LUA_PATH="path_toflaw/doclet/html/?;;" luadoc -d html --nofiles *.lua
 
 For the most impatient or curious, here is a quick glance at flaw
 usage:

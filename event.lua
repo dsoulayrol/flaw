@@ -19,34 +19,32 @@
 local setmetatable = setmetatable
 
 
---- Events handling.
+--- Core events objects.
 --
--- <br/><br/>
--- Events are a way for the user to modify the gadget behaviour or
+-- <p>Events are a way for the user to modify the gadget behaviour or
 -- properties when certain conditions are met. An event is composed of
--- a trigger, which computes the condition, and an action.
+-- a trigger, which computes the condition, and an action.</p>
 --
--- <br/><br/>
--- Condition and action are written by the user. Events are registered
--- to a gadget, which in turns register the trigger to its
+-- <p>Condition and action are written by the user. Events are
+-- registered to a gadget, which in turns register the trigger to its
 -- provider. The event trigger is tested each time the provider
 -- refreshes its data, and the action called if the trigger is
--- activated.
+-- activated.</p>
 --
--- <br/><br/>
--- The condition function accepts one parameter which is the data
+-- <p>The condition function accepts one parameter which is the data
 -- table updated by the provider. It shall return true to fire the
 -- event, or false otherwise. The action function takes the gadget as
--- parameter. Its return value is dropped.
+-- parameter. Its return value is dropped.</p>
 --
--- <br/><br/><b>Example:</b><br/>
--- <code>t = flaw.event.LatchTrigger:new{</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;condition = function(d) return d.load < 25 end }</code><br/>
--- <code>a = function(g) g.pattern = '&lt;bg color="#ff6565"/&gt;$load%' end</code><br/>
--- <code>gadget:add_event(t, a)</code>
+-- <p>Example:</p>
+-- <div class='example'>
+-- t = flaw.event.LatchTrigger:new{<br/>
+-- &nbsp;&nbsp;&nbsp;condition = function(d) return d.load &lt; 25 end },<br/>
+-- a = function(g) g.pattern = '&lt;bg color="#ff6565"/&gt;$load%' end<br/>
+-- gadget:add_event(t, a)<br/>
+-- </div>
 --
--- <br/><br/>
--- This module provides the different Trigger prototypes.
+-- <p>This module provides the different Trigger prototypes.</p>
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
 -- @copyright 2009, David Soulayrol
@@ -55,16 +53,14 @@ module('flaw.event')
 
 --- The simple trigger prototype.
 --
--- <br/><br/>
--- The trigger is the activation object of an event. It is tested by a
--- gadget provider each time its data are refreshed. The test can use
--- the furnished provider data and any other information the user
--- provided.
--- <br/><br/>
--- The simple trigger starts the event it belongs to each time the
--- condition is successfully checked.
+-- <p>The trigger is the activation object of an event. It is tested
+-- by a gadget provider each time its data are refreshed. The test can
+-- use the furnished provider data and any other information the user
+-- provided.</p>
+
+-- <p>The simple trigger starts the event it belongs to each time the
+-- condition is successfully checked.</p>
 --
--- <br/><br/>
 -- @class table
 -- @name Trigger
 -- @field condition the boolean computing routine, normally provided
@@ -79,20 +75,20 @@ function Trigger:new(o)
    return o
 end
 
--- Event trigger using the raw condition.
+--- Event trigger using the raw condition.
+--
+-- @param  data the provider data.
 function Trigger:test(data)
    return self.condition(data)
 end
 
 --- The latch trigger prototype.
 --
--- <br/><br/>
--- The latch trigger starts the event it belongs to only when the
+-- <p>The latch trigger starts the event it belongs to only when the
 -- condition becomes true. That is, while the condition remains true,
 -- the event is started exactly once. It will be started again only if
--- the condition becomes false again and then true.
+-- the condition becomes false again and then true.</p>
 --
--- <br/><br/>
 -- @class table
 -- @name LatchTrigger
 -- @field condition the boolean computing routine, normally provided
@@ -100,7 +96,9 @@ end
 -- @field status the trigger memory.
 LatchTrigger = Trigger:new{ status = false }
 
--- Event trigger using a bistable mechanism around the raw condition.
+--- Event trigger using a bistable mechanism around the raw condition.
+--
+-- @param  data the provider data.
 function LatchTrigger:test(data)
    local old_status = self.status
    self.status = self.condition(data)
@@ -109,12 +107,10 @@ end
 
 --- The edge trigger prototype.
 --
--- <br/><br/>
--- The edge trigger starts the event it belongs to only when the
+-- <p>The edge trigger starts the event it belongs to only when the
 -- condition result changes. That is, the event is started each time
--- the condition becomes true or becomes false.
+-- the condition becomes true or becomes false.</p>
 --
--- <br/><br/>
 -- @class table
 -- @name EdgeTrigger
 -- @field condition the boolean computing routine, normally provided
@@ -122,7 +118,9 @@ end
 -- @field status the trigger memory.
 EdgeTrigger = Trigger:new{ status = false }
 
--- Event trigger using edge detection of the raw condition results.
+--- Event trigger using edge detection of the raw condition results.
+--
+-- @param  data the provider data.
 function EdgeTrigger:test(data)
    local old_status = self.status
    self.status = self.condition(data)

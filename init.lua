@@ -26,35 +26,13 @@ local battery = require('flaw.battery')
 local network = require('flaw.network')
 local cpu = require('flaw.cpu')
 
---- The <i>fully loaded awesome</i> package.
+--- The fully loaded awesome package.
 --
--- <br/><br/>
--- <b>flaw</b> is a LUA object oriented package providing mechanisms
--- to easily handle the configuration and the management of awesome
--- widgets.
---
--- <br/><br/>
--- <b>flaw</b> is aimed at being simple and resources efficient. To
--- achieve these goals, it minimises system resources access and
--- provides asynchronous events capabilities. The core <b>flaw</b>
--- concepts are detailed in the <a
--- href='flaw.gadget.html'><i>gadget</i></a>, <a
--- href='flaw.provider.html'><i>provider</i></a> and <a
--- href='flaw.event.html'><i>event</i></a> modules.
---
--- <br/><br/>
--- <b>flaw</b> provides many gadgets for common system information
--- (like CPU or memory activity). It also proposes a simple API to
--- extend all core objects, allowing you to write new system resources
--- interfaces or to automate the configuration of new widgets.
---
--- <br/><br/>
--- To start using <b>flaw</b>, simply add the following requirement
--- at the top of your awesome configuration file.
--- <br/><code>&nbsp;&nbsp;&nbsp;require('flaw')</code>
---
--- <br/><br/>
--- You will find many code samples in the module descriptions.
+-- <p><b>flaw</b> package is composed of core modules, which provide
+-- the raw mechanisms and utilities, and implementation modules which
+-- build upon this core to propose interesting gadgets and
+-- information. Users normally start using <b>flaw</b> by looking to
+-- implementation modules.</p>
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
 -- @copyright 2009, David Soulayrol

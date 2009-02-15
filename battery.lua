@@ -32,79 +32,83 @@ local flaw = {
 
 --- Battery information gadgets and provider.
 --
--- <br/><br/>
--- This module contains a provider for battery information and two
--- gadgets: a text gadget and an icon gadget.
+-- <p>This module contains a provider for battery information and two
+-- gadgets: a text gadget and an icon gadget.</p>
 --
--- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009, David Soulayrol
+-- <h2>Icon Gadget</h2>
 --
--- </p><h2>Icon Gadget</h2><p>
---
--- Assuming you have created a beautiful property to store your
+-- <p>Assuming you have created a beautiful property to store your
 -- battery icon path, simply add the following line to your
--- configuration to create a battery status icon gadget.<br/>
+-- configuration to create a battery status icon gadget.</p>
 --
--- <code>g = flaw.gadget.new('flaw.battery.imagebox', 'BAT0', </code><br/>
--- <code>&nbsp;&nbsp;&nbsp;{}, { image = image(beautiful.battery_icon) })</code>
+-- <div class='example'>
+-- g = flaw.gadget.new('flaw.battery.imagebox', 'BAT0',<br/>
+-- &nbsp;&nbsp;&nbsp;{}, { image = image(beautiful.battery_icon) })<br/>
+-- </div>
 --
--- <br/><br/>
--- The battery status icon gadget specializes the standard icon gadget
--- to use the <i>battery</i> module provider and that's all. The main
--- interest of this comes with the use of events.  Let's say you want
--- to change the icon to visualize roughly the power left on the
--- battery. You can add an <a href='flaw.event.html'>event</a> to the
--- icon gadget to launch an action when the battery load reaches a
--- given value.<br/>
+-- <p>The battery status icon gadget specializes the standard icon
+-- gadget to use the <i>battery</i> module provider and that's
+-- all. The main interest of this comes with the use of events.  Let's
+-- say you want to change the icon to visualize roughly the power left
+-- on the battery. You can add an <a href='flaw.event.html'>event</a>
+-- to the icon gadget to launch an action when the battery load
+-- reaches a given value.</p>
 --
--- <code>g.add_event(</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{
--- condition = function(d) return d.load < 25 end },</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;function(g) g.widget.image =
--- image(beautiful.battery_low_icon) end)</code>
+-- <div class='example'>
+-- g.add_event(<br/>
+-- &nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;condition = function(d) return d.load &lt; 25 end },<br/>
+-- &nbsp;&nbsp;&nbsp;function(g) g.widget.image =
+-- image(beautiful.battery_low_icon) end)
+-- </div>
 --
--- <br/><br/>
--- The condition you provide is called with the provider data as
+-- <p>The condition you provide is called with the provider data as
 -- argument. The action is called with the gadget as argument. Note
 -- that the use of a <a
 -- href='flaw.event.html#LatchTrigger'><code>LatchTrigger</code></a>
 -- will make the event happen only at the moment the load gets under
--- 25 percents.
+-- 25 percents.</p>
 --
--- <br/><br/>
--- Here is another example to be notified if the battery load gets
--- really low.<br/>
+-- <p>Here is another example to be notified if the battery load gets
+-- really low.</p>
 --
--- <code>g.add_event(</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{
--- condition = function(d) return d.load < 10 end },</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;function(g) naughty.notify{</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = "Battery Warning",</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text = "Battery low! " .. g.provider.data.load .. "% left!",</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = 5,</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position = "top_right",</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fg = beautiful.fg_focus,</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bg = beautiful.bg_focus} end)</code>
+-- <div class='example'>
+-- g.add_event(<br/>
+-- &nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{
+-- condition = function(d) return d.load &lt; 10 end },<br/>
+-- &nbsp;&nbsp;&nbsp;function(g) naughty.notify{<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = "Battery Warning",<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text = "Battery low! " .. g.provider.data.load .. "% left!",<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = 5,<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position = "top_right",<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fg = beautiful.fg_focus,<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bg = beautiful.bg_focus} end)
+-- </div>
 --
--- </p><h2>Text Gadget</h2><p>
+-- <h2>Text Gadget</h2>
 --
--- The battery status text gadget allows you to configure the display
--- of the raw provider data. By default, the gadget pattern is
--- <code>'$load% $status'</code>.
+-- <p>The battery status text gadget allows you to configure the
+-- display of the raw provider data. By default, the gadget pattern is
+-- <code>'$load% $status'</code>.</p>
 --
--- <br/><br/>
--- To create such a gadget, add the following line to your
--- configuration.<br/>
+-- <p>To create such a gadget, add the following line to your
+-- configuration.</p>
 --
--- <code>g = flaw.gadget.new('flaw.battery.textbox', 'BAT0')</code>
+-- <div class='example'>
+-- g = flaw.gadget.new('flaw.battery.textbox', 'BAT0')
+-- </div>
 --
--- <br/><br/>
--- If you want to provide your own pattern, add the pattern gadget
--- option:<br/>
+-- <p>If you want to provide your own pattern, add the pattern gadget
+-- option:</p>
 --
--- <code>g = flaw.gadget.new('flaw.battery.textbox', 'BAT0',</code><br/>
--- <code>&nbsp;&nbsp;&nbsp;{ pattern = '&lt;span color="#ffffff"&gt;
--- $load&lt;/span&gt;%' })</code>
+-- <div class='example'>
+-- g = flaw.gadget.new('flaw.battery.textbox', 'BAT0',<br/>
+-- &nbsp;&nbsp;&nbsp;{ pattern = '&lt;span color="#ffffff"&gt;
+-- $load&lt;/span&gt;%' })
+-- </div>
+--
+-- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
+-- @copyright 2009, David Soulayrol
 module('flaw.battery')
 
 

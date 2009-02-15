@@ -25,43 +25,40 @@ local flaw = {
 }
 
 
---- Providers handling.
+--- Providers core mechanisms.
 --
--- <br/><br/>
--- <b>flaw</b> tries to minimise system access and data refresh.
+-- <p><b>flaw</b> tries to minimise system access and data refresh.
 -- Since all information do not have the same expiration rate, all
 -- gadgets refresh themselves independently. And since some gadgets
 -- can share information, all data is provided by provider objects
 -- which can be shared among gadgets. Providers maintain status data
 -- from the system and update themselves only when necessary (ie. when
--- the gadget with the shortest refresh rate demands it).
+-- the gadget with the shortest refresh rate demands it).</p>
 --
--- <br/><br/>
--- Providers are normally handled automatically when a gadget is
+-- <p>Providers are normally handled automatically when a gadget is
 -- created. You only have to take care of them when you are writing
 -- your own gadget, or if you want to create a new provider, or extend
--- an existing one.
+-- an existing one.</p>
 --
--- <br/><br/>
--- <b>flaw</b> provides many providers for common system
+-- <p><b>flaw</b> provides many providers for common system
 -- information. Actually, there is nearly one provider per information
--- type. The existing providers are stored in the module of the
--- widget type they serve.
+-- type. The existing providers are stored in the module of the widget
+-- type they serve.</p>
 --
--- <br/><br/>
--- A provider is identified by its type and an identifier, which must
--- remain unique for one type. The provider type usually represents the
--- module of this provider and can be composed of any character. Thus,
--- it is common to create a new provider prototype this way:
+-- <p>A provider is identified by its type and an identifier, which
+-- must remain unique for one type. The provider type usually
+-- represents the module of this provider and can be composed of any
+-- character. Thus, it is common to create a new provider prototype
+-- this way:</p>
 --
--- <br/><code>&nbsp;&nbsp;&nbsp;
--- flaw.provider.Provider:new{ type = _NAME }</code>
+-- <div class='example'>
+-- flaw.provider.Provider:new{ type = _NAME }
+-- </div>
 --
--- <br/><br/>
--- All created providers are kept in a <a
+-- <p>All created providers are kept in a <a
 -- href='#_providers_cache'>global store</a> from which they can be
 -- retrieved anytime. Note that this store has normally no use for the
--- user, but allows gadgets to share providers.
+-- user, but allows gadgets to share providers.</p>
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
 -- @copyright 2009, David Soulayrol
@@ -70,12 +67,12 @@ module('flaw.provider')
 
 --- Global providers store.
 --
--- <br/><br/>
--- This table stores all the registered provider instances. Providers
--- are sorted by their type first, and then by their ID. The store is
--- private to the <code>provider</code> module. It can be accessed
--- using its <a href='#get'><code>get</code></a>, and <a
--- href='#add'><code>add</code></a> functions.
+-- <p>This table stores all the registered provider
+-- instances. Providers are sorted by their type first, and then by
+-- their ID. The store is private to the <code>provider</code>
+-- module. It can be accessed using its <a
+-- href='#get'><code>get</code></a>, and <a
+-- href='#add'><code>add</code></a> functions.</p>
 --
 -- @class table
 -- @name _providers_cache
@@ -83,16 +80,13 @@ local _providers_cache = {}
 
 --- Store a provider instance.
 --
--- <br/><br/>
--- This function stores the given provider in the global providers
--- store. It fails if the instance is invalid, that is if it is nil
--- or if its type is nil.
+-- <p>This function stores the given provider in the global providers
+-- store. It fails if the instance is invalid, that is if it is nil or
+-- if its type is nil.</p>
 --
--- <br/><br/>
--- You normally do not have to call this function since it is silently
--- invoked each time a gadget instantiates its provider.
+-- <p>You normally do not have to call this function since it is
+-- silently invoked each time a gadget instantiates its provider.</p>
 --
--- <br/><br/>
 -- @param  p the provider prototype to store.
 function add(p)
    if p == nil or p.id == nil then
@@ -107,12 +101,11 @@ end
 
 --- Retrieve a provider instance.
 --
--- <br/><br/>
--- This function returns the provider matching the given information. It
--- immediately fails if the given type or identifier is nil. It also
--- fails if no instance in the store matches the given parameters.
+-- <p>This function returns the provider matching the given
+-- information. It immediately fails if the given type or identifier
+-- is nil. It also fails if no instance in the store matches the given
+-- parameters.</p>
 --
--- <br/><br/>
 -- @param  type the type of the provider to retrieve.
 -- @param  id the uniquer identifier of the provider to retrieve.
 -- @return The matching provider instance, or nil if information was
@@ -129,10 +122,10 @@ end
 
 --- The Provider prototype.
 --
--- <br/><br/>
--- This is the root prototype of all providers. It provides common
+-- <p>This is the root prototype of all providers. It provides common
 -- methods for refresh handling. It also defines the following
--- mandatory properties.
+-- mandatory properties.</p>
+--
 -- <ul>
 -- <li><code>interval</code><br/>
 -- This is the provider refresh rate. Its default value is 10 seconds
@@ -151,12 +144,10 @@ Provider = { type = 'unknown', interval = 10, timestamp = 0 }
 
 --- Provider constructor.
 --
--- <br/><br/>
--- Remember that providers are normally handled automatically when a
--- gadget is created. This constructor is only used internally, or to
--- create new gadget prototypes.
+-- <p>Remember that providers are normally handled automatically when
+-- a gadget is created. This constructor is only used internally, or
+-- to create new gadget prototypes.</p>
 --
--- <br/><br/>
 -- @param  o a table with default values.
 -- @return The brand new provider.
 function Provider:new(o)
@@ -170,19 +161,16 @@ end
 
 --- Subscribe a gadget to this provider.
 --
--- <br/><br/>
--- This is the method a gadget automatically uses, when created by the
+-- <p>This is the method a gadget automatically uses, when created by the
 -- gadget factory, to register itself to its provider. By registering
 -- itself, the gadget can ask for a new poll interval to the
 -- provider. The provider will store the new interval if it is
--- inferior to its current poll delay.
+-- inferior to its current poll delay.</p>
 --
--- <br/><br/>
--- This method immediately fails if the given gadget is nil. On
+-- <p>This method immediately fails if the given gadget is nil. On
 -- success, the gadget is stored in the provider internal subscribers
--- list.
+-- list.</p>
 --
--- <br/><br/>
 -- @param  g the gadget subscriber.
 -- @param  delay the new poll interval asked by the a table with
 --         default values.
@@ -202,7 +190,6 @@ end
 
 --- Check whether cached data are still valid.
 --
--- <br/><br/>
 -- @return True is the provider should refresh its data set, False otherwise.
 function Provider:is_dirty()
    return self.timestamp <= os.time() + self.interval
@@ -210,20 +197,17 @@ end
 
 --- Refresh the provider status if necessary.
 --
--- <br/><br/>
--- This is the method invoked by the provider subscribers when they
+-- <p>This is the method invoked by the provider subscribers when they
 -- want to update themselves. The refresh is achieved only if <a
 -- href='#Provider:is_dirty'><code>Provider:is_dirty</code></a>
--- returns true.
+-- returns true.</p>
 --
--- <br/><br/>
--- This method actually only checks if refresh is necessary, and
+-- <p>This method actually only checks if refresh is necessary, and
 -- eventually invokes another method do to it. The actual refresh
 -- process is dedicated to the <code>do_refresh</code> method, which
 -- is called with no argument. This definition depends on the provider
--- role, and should be defined in all derived prototypes.
+-- role, and should be defined in all derived prototypes.</p>
 --
--- <br/><br/>
 -- @param  g the gadget which is asking for the provider to refresh.
 -- @return True is the provider did refresh its data set since the
 --         given gadget last asked for the refresh.
