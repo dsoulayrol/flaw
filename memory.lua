@@ -39,6 +39,48 @@ local flaw = {
 -- <p>This module contains a provider for memory status and two
 -- gadgets: a text gadget and a graph gadget.</p>
 --
+-- <h2>Text Gadget</h2>
+--
+-- <p>Without any arguments, the text gadget tracks the available
+-- memory percentage with the default <b>flaw</b> refresh value.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.new('flaw.battery.textbox', '')
+-- </div>
+--
+-- <p>Note that the ID has no meaning for the memory provider, so you
+-- can fill whatever you want. Remember anyway that the ID must remain
+-- unique among all memory gadgets you could create.</p>
+--
+-- <p>Like any other gadgets, the memory ones support <a
+-- href='flaw.event.html'>events</a>.</p>
+--
+-- <div class='example'>
+-- g.add_event(<br/>
+-- &nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{
+-- condition = function(d) return d.load &gt; 95 end },<br/>
+-- &nbsp;&nbsp;&nbsp;function(g) naughty.notify{<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = "Memory Full",<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text = "Memory shortage! Consider closing some applications.",<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = 5,<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position = "top_right",<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fg = beautiful.fg_focus,<br/>
+-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bg = beautiful.bg_focus} end)
+-- </div>
+--
+-- <h2>Graph Gadget</h2>
+--
+-- <div class='example'>
+-- g = flaw.gadget.new('flaw.memory.graph', '', {}, {<br/>
+-- &nbsp;&nbsp;&nbsp;width = '35',<br/>
+-- &nbsp;&nbsp;&nbsp;height = '0.8',<br/>
+-- &nbsp;&nbsp;&nbsp;grow = 'right',<br/>
+-- &nbsp;&nbsp;&nbsp;bg = beautiful.bg_normal,<br/>
+-- &nbsp;&nbsp;&nbsp;fg = beautiful.fg_normal,<br/>
+-- &nbsp;&nbsp;&nbsp;max_value = '100',<br/>
+-- })
+-- </div>
+--
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
 -- @copyright 2009, David Soulayrol
 module('flaw.memory')
@@ -50,10 +92,9 @@ module('flaw.memory')
 -- The memory provider type is set to memory._NAME. Its status data
 -- are read from <code>/proc/meminfo</code>.</p>
 --
--- <p>
--- The provider data provides the quantity of memory occupied in
--- <code>data.ratio</code>. <code>data.proc</code> contains the values
--- read in the source file. Remarquable values are:</p>
+-- <p>The provider data provides the quantity of memory occupied in
+-- <code>data.ratio</code>. The table <code>data.proc</code> contains
+-- the values read in the source file. Remarquable values are:</p>
 --
 -- <ul>
 -- <li><code>meminfo_memtotal</code><br/>
@@ -109,9 +150,17 @@ function MemoryProviderFactory()
    return p
 end
 
+
 -- A Text gadget for memory status display.
 flaw.gadget.register(
    flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
    MemoryProviderFactory,
    { pattern = '$ratio%' }
+)
+
+-- A graph gadget for memory status history.
+flaw.gadget.register(
+   flaw.gadget.GraphGadget:new{ type = _NAME .. '.graph' },
+   MemoryProviderFactory,
+   { delay = 1, values = { 'ratio' } }
 )
