@@ -16,7 +16,7 @@ local naughty = require('naughty')
 local beautiful = require('beautiful')
 
 -- Utilities for Flaw.
--- 
+--
 -- This module mainly contains utilities borrowed and improved from
 -- wicked and other scripts found on the Awesome wiki. Many thanks to
 -- all he wiki contributers.
@@ -202,6 +202,11 @@ end
 --     return text
 -- end
 
+
+function round(n, p)
+  local m = 10^(p or 0)
+  return math.floor(m*n + 0.5)/m
+end
 
 debug = {}
 

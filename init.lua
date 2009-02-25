@@ -25,6 +25,7 @@ local helper = require('flaw.helper')
 local battery = require('flaw.battery')
 local network = require('flaw.network')
 local cpu = require('flaw.cpu')
+local memory = require('flaw.memory')
 
 --- The fully loaded awesome package.
 --
