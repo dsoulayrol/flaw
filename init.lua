@@ -32,7 +32,19 @@ local memory = require('flaw.memory')
 -- <p><b>flaw</b> package is composed of core modules, which provide
 -- the raw mechanisms and utilities, and implementation modules which
 -- build upon this core to propose interesting gadgets and
--- information. Users normally start using <b>flaw</b> by looking to
+-- information. The core <b>flaw</b> modules are <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.gadget', doc)%>"
+-- >gadget</a> &mdash; which provides the main display objects factory
+-- and management, <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.provider', doc)%>"
+-- >provider</a> &mdash; which provides the roots of the data mining
+-- objects, and <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.event', doc)%>"
+-- >event</a> which proposes an event mechanism. The <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.helper', doc)%>"
+-- >helper</a> module, at last, provides some generic tools.</p>
+--
+-- <p>Users normally start using <b>flaw</b> by looking to
 -- implementation modules.</p>
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
