@@ -19,11 +19,6 @@
 local io = io
 local string = string
 
-local capi = {
-   widget = widget,
-   image = image,
-}
-
 local beautiful = require('beautiful')
 local naughty = require('naughty')
 
