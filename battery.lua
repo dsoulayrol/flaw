@@ -19,7 +19,6 @@
 local io = io
 local math = math
 local os = os
-local tonumber = tonumber
 
 local beautiful = require('beautiful')
 local naughty = require('naughty')
@@ -121,13 +120,12 @@ STATUS_DISCHARGING = 'v'
 
 --- The battery provider prototype.
 --
--- <br/><br/>
--- The battery provider type is set to battery._NAME. Its status data
--- are read from the files found under
--- <code>/sys/class/power_supply/&lt;BAT_ID&gt;</code>.
+-- <p>The battery provider type is set to battery._NAME. Its status
+-- data are read from the files found under
+-- <code>/sys/class/power_supply/&lt;BAT_ID&gt;</code>.</p>
 --
--- <br/><br/>
--- The battery provider data is composed of two fields.
+-- <p>The battery provider data is composed of two fields.</p>
+--
 -- <ul>
 -- <li><code>load</code><br/>
 -- The current battery load in percents.</li>
@@ -138,11 +136,12 @@ STATUS_DISCHARGING = 'v'
 -- battery is in charge, or <code>STATUS_DISCHARGING</code> if the
 -- battery is currently the only power supply.</li>
 -- </ul>
+--
 -- @class table
 -- @name BatteryProvider
 BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
 
--- Load state information from /proc/acpi/battery/<ID>/state if it exists
+--- Load state information from /proc/acpi/battery/<ID>/state if it exists
 function BatteryProvider:load_from_procfs()
    local r = false
    local p = self.data.proc
@@ -173,7 +172,7 @@ function BatteryProvider:load_from_procfs()
    end
 end
 
--- Load state information from /proc/acpi/battery/<ID>/state if it exists
+--- Load state information from /proc/acpi/battery/<ID>/state if it exists
 function BatteryProvider:load_from_sysfs()
    local f = nil
 
@@ -219,9 +218,8 @@ end
 
 --- A factory for battery providers.
 --
--- <br/><br/>
--- Only one provider is built for a slot. Created providers are stored
--- in the global provider cache.
+-- <p>Only one provider is built for a slot. Created providers are
+-- stored in the global provider cache.</p>
 --
 -- @param  slot the identifier of the battery for which the new
 --         provider should gather information
