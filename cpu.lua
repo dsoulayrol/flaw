@@ -1,6 +1,19 @@
--- A full OO configuration system for Awesome WM.
--- Licensed under the GPL v3.
--- @author David 'd_rol' Soulayrol &lt;david.soulayrol@gmail.com&gt;
+-- flaw, a Lua OO management framework for Awesome WM widgets.
+-- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as published by
+-- the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 -- Grab environment.
 local io = io
@@ -96,7 +109,7 @@ flaw.gadget.register(
    { delay = 1, pattern = '$load_user/$load_sum' }
 )
 
--- An graph gadget for cpu load display.
+-- A graph gadget for cpu load display.
 flaw.gadget.register(
    flaw.gadget.GraphGadget:new{ type = _NAME .. '.graph' },
    CPUProviderFactory,
@@ -104,15 +117,8 @@ flaw.gadget.register(
 )
 
 -- An icon gadget for cpu status display.
--- TODO!
-CPUIconGadget = flaw.gadget.IconGadget:new{ type = _NAME .. '.icon' }
-
-function CPUIconGadget:update()
-   if self.provider ~= nil then
-      self.provider:refresh()
-      if self.provider.data.status ~= self.status then
-         self.status = self.provider.data.status
-         self.widget.icon = self.images[self.status]
-      end
-   end
-end
+-- An icon gadget prototype for battery status display.
+flaw.gadget.register(
+   flaw.gadget.IconGadget:new{ type = _NAME .. '.imagebox' },
+   CPUProviderFactory
+)
