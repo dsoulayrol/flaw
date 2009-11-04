@@ -5,9 +5,9 @@ library providing a thin abstraction layer above awesome widgets and
 refresh mechanisms. It is aimed at being simple and resources
 efficient.
 
-To learn more, please read the provided flaw(7) man page. You can read
-it without installing it on the system using one of the following
-commands:
+Flaw requires luafilesystem. To learn more, please read the provided
+flaw(7) man page. You can read it without installing it on the system
+using one of the following commands:
 
   man -l flaw.7
   groff -t -mandoc -Tascii flaw.7 | less
