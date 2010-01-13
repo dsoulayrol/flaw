@@ -23,15 +23,12 @@ local string = string
 local tonumber = tonumber
 
 local capi = {
-   widget = widget,
-}
-
-local awful = {
-   hooks = require('awful.hooks')
+   timer = timer,
+   widget = widget
 }
 
 local flaw = {
-   helper = require('flaw.helper'),
+   helper = require('flaw.helper')
 }
 
 
@@ -311,7 +308,9 @@ function Gadget:register(delay)
       self.provider:subscribe(self, delay)
    end
 
-   awful.hooks.timer.register(delay, function() self:update() end, true)
+   t = capi.timer{ timeout = delay }
+   t:add_signal('timeout', function() self:update() end, true)
+   t:start()
 end
 
 --- Register an event to the gadget.
