@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009, 2010 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -259,6 +259,9 @@ function new(type, id, gopt, wopt)
 
    -- Start monitoring.
    g:register(gopt.delay)
+
+   -- Initial display.
+   g:update()
 
    return add(g)
 end
