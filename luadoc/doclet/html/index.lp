@@ -14,13 +14,15 @@
         <div id="content">
           <h2>Introduction</h2>
           <p>
-            <b>flaw</b> is a LUA object oriented package providing
-            mechanisms to easily handle the configuration and the
-            management of awesome widgets. <b>flaw</b> is aimed at
-            being simple and resources efficient. To achieve these
-            goals, it minimises system resources access and provides
-            asynchronous events capabilities. The core <b>flaw</b>
-            concepts are detailed in
+            <b>flaw</b> is a <a href="http://lua.org">Lua</a> object
+            oriented package providing mechanisms to easily handle the
+            configuration and the management
+            of <a href="http://awesome.naquadah.org">awesome</a>
+            widgets. <b>flaw</b> is aimed at being simple and
+            resources efficient. To achieve these goals, it minimises
+            system resources access and provides asynchronous events
+            capabilities. The core <b>flaw</b> concepts are detailed
+            in
             the <a href="<%=luadoc.doclet.html.module_link('flaw.gadget',
             doc)%>" >gadget</a>,
             <a href="<%=luadoc.doclet.html.module_link('flaw.provider',
@@ -37,11 +39,24 @@
           </p>
           <p>
             To start using <b>flaw</b>, simply add the following
-            requirement at the top of your awesome configuration
+            requirement at the top of your <b>awesome</b> configuration
             file. You will find many code samples in the module
             descriptions.
           </p>
           <div class='example'>require('flaw')</div>
+
+          <h2>Credits and License</h2>
+          <p>
+            The <a href="http://awesome.naquadah.org/wiki/Main_Page">awesome
+            wiki</a> proposes a lot of more
+            common <a href="http://awesome.naquadah.org/wiki/Main_Page#Lua_extensions">Lua
+            extensions</a>. Though their design and target differ, all
+            of them provide similar information like CPU or network
+            status and share some algorithms. Thus, the core functions
+            of many modules developped in <b>flaw</b> come
+            from <b>wicked</b> or <b>vicious</b>. Many thanks to all
+            the contributors to these Lua extensions.
+          </p>
           <p>
             <b>flaw</b> is licensed under
             the <a href="http://www.gnu.org/licenses/gpl.html">GNU
