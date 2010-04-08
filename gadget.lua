@@ -22,6 +22,10 @@ local setmetatable = setmetatable
 local string = string
 local tonumber = tonumber
 
+local awful = {
+   tooltip = require('awful.tooltip')
+}
+
 local capi = {
    timer = timer,
    widget = widget
@@ -328,6 +332,30 @@ function Gadget:add_event(t, a)
    end
 end
 
+--- Sets the tooltip for this gadget.
+--
+-- @param pattern the pattern to use for the tooltip content. This
+-- pattern will be parsed like a <a
+-- href='#TextGadget'><code>TextGadget</code></a> pattern.
+function Gadget:set_tooltip(pattern)
+   if pattern == nil then
+      flaw.helper.debug.error('flaw.gadget.Gadget:set_tooltip: invalid pattern.')
+      return nil
+   end
+
+   self.tooltip = {
+      widget = awful.tooltip({ objects = { self.widget }, }),
+      pattern = pattern }
+
+   if self.provider ~= nil and self.provider.data ~= nil then
+      self.tooltip.widget:set_text(
+         flaw.helper.strings.format(
+            pattern, self.provider.data[self.id] or self.provider.data))
+   else
+      flaw.helper.debug.warn('flaw.gadget.Gadget:set_tooltip: useless tooltip.')
+   end
+end
+
 --- Callback for gadget update.
 --
 -- <p>This function is called by awful if the gadget has been
@@ -381,6 +409,10 @@ function TextGadget:redraw()
    end
    if self.pattern ~= nil then
       self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
+   end
+   if self.tooltip then
+      self.tooltip.widget:set_text(
+         flaw.helper.strings.format(self.tooltip.pattern, data_set))
    end
 end
 
