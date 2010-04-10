@@ -17,11 +17,7 @@
 
 -- Grab environment.
 local io = io
-
-local string = {
-    find = string.find,
-    match = string.match
-}
+local os = os
 
 local flaw = {
    helper = require('flaw.helper'),
@@ -68,7 +64,7 @@ module('flaw.gmail')
 -- feed using curl. You will very certainly need to provide to curl
 -- your GMail credentials (see <i>curl(1)</i>).
 --
--- <p>The gmail provider data is composed of two fields.</p>
+-- <p>The gmail provider data is composed of three fields.</p>
 --
 -- <ul>
 -- <li><code>count</code><br/>
@@ -83,29 +79,45 @@ GMailProvider = flaw.provider.Provider:new{ type = _NAME }
 
 --- Callback for provider refresh.
 function GMailProvider:do_refresh()
-   local run_once = nil
-   local feed = {
-      "https://mail.google.com/mail/feed/atom/unread",
-      "Gmail %- Label"
-   }
-   local f = io.popen("curl --connect-timeout 1 -m 3 -fsn " .. feed[1])
-
-   -- TODO: to improve to retrieve the author of the mail.
+   local states = { ROOT = 0, ENTRY = 1, AUTHOR = 2 }
+   local depth = states.ROOT
+   local current = ''
+   local pattern = ''
+   local feed = 'https://mail.google.com/mail/feed/atom/unread'
+   local f = io.popen("curl --connect-timeout 1 -m 3 -fsn " .. feed)
+   self.data.timestamp = os.date('%H:%M')
    self.data.count = '0'
-   for line in f:lines() do
-      self.data.count =
-         string.match(line, "<fullcount>([%d]+)</fullcount>") or self.data.count
+   self.data.mails = ''
 
-      -- Find subject tags
-      local title = string.match(line, "<title>(.*)</title>")
-      -- If the subject changed then break out of the loop
-      if title ~= nil and not string.find(title, feed[2]) then
-         -- Sanitize the subject and store it.
-         if run_once == nil then
-            self.data.mails = flaw.helper.escape(title)
-            run_once = "ran"
+   for line in f:lines() do
+      if depth == states.AUTHOR then
+         if line:match("</author>") ~= nil then
+            depth = states.ENTRY
          else
-            self.data.mails = self.data.mails .. "\n" .. flaw.helper.escape(title)
+            pattern = line:match("<name>(.*)</name>")
+            if pattern ~= nil then
+               current = current .. ' (' .. flaw.helper.strings.escape(pattern) .. ')'
+            end
+         end
+      elseif depth == states.ENTRY then
+         if line:match("</entry>") ~= nil then
+            self.data.mails = self.data.mails .. current .. "\n"
+            depth = states.ROOT
+         elseif line:match("<author>") ~= nil then
+            depth = states.AUTHOR
+         else
+            pattern = line:match("<title>(.*)</title>")
+            if pattern ~= nil then
+               current = flaw.helper.strings.crop(
+                  flaw.helper.strings.escape(pattern), 32)
+            end
+         end
+      elseif depth == states.ROOT then
+         if line:match("<entry>") ~= nil then
+            depth = states.ENTRY
+         else
+            self.data.count =
+               line:match("<fullcount>([%d]+)</fullcount>") or self.data.count
          end
       end
    end
@@ -124,7 +136,7 @@ function GMailProviderFactory()
    -- Create the provider if necessary.
    if p == nil then
       p = GMailProvider:new{
-         id = '', data = { count = "0", subjects = {} } }
+         id = '', data = { timestamp = 'N/A', count = "0", mails = '' } }
       flaw.provider.add(p)
    end
    return p

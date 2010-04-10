@@ -203,7 +203,7 @@ function strings.rstrip(str)
 end
 
 -- Escape a string
-function escape(text)
+function strings.escape(text)
    local xml_entities = {
       ["\""] = "&quot;",
       ["&"]  = "&amp;",
