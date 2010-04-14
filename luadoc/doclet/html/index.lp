@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
           "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
   <head>
@@ -44,6 +44,32 @@
             descriptions.
           </p>
           <div class='example'>require('flaw')</div>
+          <p>
+            <i>Please note:</i> <b>flaw</b> tries to remain as easy as
+            possible to install. However, to keep some things simple,
+            it relies on <b>lua-filesystem</b> which can be found
+            at <a href="http://luaforge.net/projects/luafilesystem">LuaForge.net</a>.
+          </p>
+          <%if not options.nomodules and #doc.modules > 0 then%>
+          <h2>Documentation</h2>
+          <table class="module_list">
+            <tr><th colspan="2">Modules</th></tr>
+            <%for _, modulename in ipairs(doc.modules) do%>
+	    <tr>
+	      <td class="name"><a href="<%=luadoc.doclet.html.module_link(modulename, doc)%>"><%=modulename%></a></td>
+	      <td class="summary"><%=doc.modules[modulename].summary%></td>
+	    </tr>
+            <%end%>
+          </table>
+          <%end%>
+
+          <h2>Download</h2>
+          <p>
+            The source code of <b>flaw</b> is hosted
+            on <a href="http://github.com">GitHub</a> and can be
+            browsed <a href="http://github.com/dsoulayrol/flaw">here</a>. There
+            is neither archive nor stable release at this time.
+          </p>
 
           <h2>Credits and License</h2>
           <p>
@@ -62,19 +88,6 @@
             the <a href="http://www.gnu.org/licenses/gpl.html">GNU
             General Public License v3</a>.
           </p>
-
-          <%if not options.nomodules and #doc.modules > 0 then%>
-          <h2>Modules</h2>
-          <table class="module_list">
-            <!--<tr><td colspan="2">Modules</td></tr>-->
-            <%for _, modulename in ipairs(doc.modules) do%>
-	    <tr>
-	      <td class="name"><a href="<%=luadoc.doclet.html.module_link(modulename, doc)%>"><%=modulename%></a></td>
-	      <td class="summary"><%=doc.modules[modulename].summary%></td>
-	    </tr>
-            <%end%>
-          </table>
-          <%end%>
 
         </div> <!-- id="content" -->
       </div> <!-- id="main" -->

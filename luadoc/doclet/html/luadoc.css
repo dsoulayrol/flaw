@@ -236,6 +236,13 @@ table.module_list td
 }
 table.module_list td.name { background-color: #f0f0f0; }
 table.module_list td.summary { width: 100%; }
+table.module_list th {
+    background-color: #e7e7e7;
+    border-width: 1px;
+    padding: 3px;
+    border-style: solid;
+    border-color: #cccccc;
+}
 
 table.file_list
 {

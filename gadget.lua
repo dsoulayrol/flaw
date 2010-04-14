@@ -41,10 +41,11 @@ local flaw = {
 -- <p>To add functionality to awesome widgets, <b>flaw</b> defines
 -- gadget objects, which are a wrapper around a widget. Gadgets have
 -- properties, events, a refresh mechanism and a data provider. They
--- can wrap all awesome widget types, namely text boxes, image boxes
--- or graphs. <b>flaw</b> provides many gadgets for common system
--- information (like battery, CPU or memory activity) in different
--- modules. This one contains the core gadget prototypes and
+-- can wrap all <b>awesome</b> widget types, but the most commonly
+-- used to report information are wrapped today: text boxes, image
+-- boxes or graphs. <b>flaw</b> provides many gadgets for common
+-- system information (like battery, CPU or memory activity) in
+-- different modules. This one contains the core gadget prototypes and
 -- functions.</p>
 --
 -- <p>A gadget is identified by its type and an identifier, which must
@@ -72,13 +73,13 @@ local flaw = {
 -- <p>All created gadgets are kept in a <a
 -- href='#_gadgets_cache'>global store</a> from which they can be
 -- retrieved anytime. This store knows not only about gadgets
--- instance, but also about their prototype, their provider, and
+-- instances, but also about their prototype, their provider, and
 -- defaults properties.</p>
 --
 -- <b>TODO: Procedure to write a new gadget prototype</b>
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009, David Soulayrol
+-- @copyright 2009, 2010 David Soulayrol
 module('flaw.gadget')
 
 

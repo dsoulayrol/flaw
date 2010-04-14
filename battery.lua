@@ -141,7 +141,7 @@ STATUS_DISCHARGING = 'v'
 -- @name BatteryProvider
 BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
 
---- Load state information from /proc/acpi/battery/<ID>/state if it exists
+--- Load state information from /proc/acpi/battery/&lt;ID&gt;/state if it exists
 function BatteryProvider:load_from_procfs()
    local r = false
    local p = self.data.proc
@@ -172,7 +172,7 @@ function BatteryProvider:load_from_procfs()
    end
 end
 
---- Load state information from /proc/acpi/battery/<ID>/state if it exists
+--- Load state information from /proc/acpi/battery/&lt;ID&gt;/state if it exists
 function BatteryProvider:load_from_sysfs()
    local f = nil
 
