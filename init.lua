@@ -17,6 +17,8 @@
 
 local lfs = require('lfs')
 
+local naughty = require('naughty')
+
 -- Helper tools for environment settings.
 function load_battery_support()
    local mod = nil
@@ -58,6 +60,7 @@ local network = require('flaw.network')
 -- software package is present.
 local alsa = load_alsa_support()
 local battery = load_battery_support()
+
 
 --- The fully loaded awesome package.
 --
@@ -309,3 +312,26 @@ local battery = load_battery_support()
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
 -- @copyright 2009, David Soulayrol
 module("flaw")
+
+--- Notify the user.
+--
+-- <p>This function pops up a notification displaying a list of
+-- modules which were not loaded. These checked modules are those
+-- which depend on hardware or sources that can be absent from some
+-- system, like the battery.</p>
+--
+-- <p>This function can typically be called at the end of the
+-- configuration file, or on demand to check the flaw library status.</p>
+function check_modules()
+   local dropped_modules = ''
+   if alsa == nil then dropped_modules = 'alsa\n' end
+   if battery == nil then dropped_modules = dropped_modules .. 'battery\n' end
+   if dropped_modules ~= '' then
+      naughty.notify{
+         title = "Flaw",
+         text = "The following modules are absent from your system:\n"
+            .. dropped_modules,
+         timeout = 12,
+         position = "top_right"}
+   end
+end
