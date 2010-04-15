@@ -18,9 +18,9 @@
 -- Grab environment.
 local io = io
 local math = math
+local tonumber = tonumber
 local os = os
 local string = string
-local tonumber = tonumber
 
 local beautiful = require('beautiful')
 local naughty = require('naughty')
@@ -41,19 +41,13 @@ local flaw = {
 -- @copyright 2009, David Soulayrol
 module('flaw.network')
 
+
+-- Bandwidth in bytes.
+-- TODO: should become a parameter for the provider.
+BANDWIDTH = 120000
+
 --- The network provider prototype.
 NetworkProvider = flaw.provider.Provider:new{ type = _NAME }
-
---- Load wifi link level from /sys/class/net/<ID>/wireless/link if it exists
--- TODO: plug it!
-function NetworkProvider:load_from_wireless(adapter)
-   local f = io.open("/sys/class/net/" .. adapter .. "/wireless/link")
-   local wifiStrength = f:read()
-   if wifiStrength == "0" then
-      wifiStrength = "Network Down"
-   end
-   f:close()
-end
 
 --- Callback for provider refresh.
 function NetworkProvider:do_refresh()
@@ -76,7 +70,6 @@ function NetworkProvider:do_refresh()
                   self.data[adapter] = {
                      all_net_in = 0, all_net_out = 0, net_in = 0, net_out = 0 }
                end
-
                -- First decimal number are total bytes
                local split_line = flaw.helper.strings.split(
                   string.sub(line, sep + 1))
@@ -89,6 +82,11 @@ function NetworkProvider:do_refresh()
                   (input - self.data[adapter].all_net_in) / interval
                self.data[adapter].net_out =
                   (output - self.data[adapter].all_net_out) / interval
+
+               self.data[adapter].percents_in =
+                  (self.data[adapter].net_in / BANDWIDTH) * 100
+               self.data[adapter].percents_out =
+                  (self.data[adapter].net_out / BANDWIDTH) * 100
 
                self.data[adapter].all_net_in = input
                self.data[adapter].all_net_out = output
@@ -117,14 +115,14 @@ end
 
 -- A Text gadget for network status display.
 flaw.gadget.register(
-   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
-   NetworkProviderFactory,
-   { delay = 1, pattern = 'in:$net_in out:$net_out' }
-)
+   'NetTextbox', flaw.gadget.TextGadget:new{}, NetworkProviderFactory,
+   { delay = 1, pattern = 'in:$net_in out:$net_out' })
 
 -- A graph gadget for network load display.
 flaw.gadget.register(
-   flaw.gadget.GraphGadget:new{ type = _NAME .. '.graph' },
-   NetworkProviderFactory,
-   { delay = 1, values = { 'net_in', 'net_out' } }
-)
+   'NetGraph', flaw.gadget.GraphGadget:new{}, NetworkProviderFactory,
+   { delay = 1, values = { 'percents_in' } })
+
+-- An icon gadget for network status display.
+flaw.gadget.register(
+   'NetIcon', flaw.gadget.IconGadget:new{}, NetworkProviderFactory)

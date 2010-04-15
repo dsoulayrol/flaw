@@ -89,9 +89,9 @@ function CPUProvider:do_refresh()
    io.close(file);
 end
 
--- A factory for cpu providers.
--- Only one provider is built for a CPU ID. Created providers are stored
--- in the provider cache. See provider.add ant provider.get.
+-- A factory for cpu providers. Only one provider is built for a CPU
+-- ID. Created providers are stored in the provider cache. See
+-- provider.add ant provider.get.
 function CPUProviderFactory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
@@ -104,21 +104,14 @@ end
 
 -- A Text gadget for cpu status display.
 flaw.gadget.register(
-   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
-   CPUProviderFactory,
-   { delay = 1, pattern = '$load_user/$load_sum' }
-)
+   'CPUTextbox', flaw.gadget.TextGadget:new{}, CPUProviderFactory,
+   { delay = 1, pattern = '$load_user/$load_sum' })
 
 -- A graph gadget for cpu load display.
 flaw.gadget.register(
-   flaw.gadget.GraphGadget:new{ type = _NAME .. '.graph' },
-   CPUProviderFactory,
-   { delay = 1, values = { 'load_sum' } }
-)
+   'CPUGraph', flaw.gadget.GraphGadget:new{}, CPUProviderFactory,
+   { delay = 1, values = { 'load_sum' } })
 
 -- An icon gadget for cpu status display.
--- An icon gadget prototype for battery status display.
 flaw.gadget.register(
-   flaw.gadget.IconGadget:new{ type = _NAME .. '.imagebox' },
-   CPUProviderFactory
-)
+   'CPUIcon', flaw.gadget.IconGadget:new{}, CPUProviderFactory)

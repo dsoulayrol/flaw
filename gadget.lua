@@ -23,8 +23,9 @@ local string = string
 local tonumber = tonumber
 
 local awful = {
-   graph = require('awful.widget.graph'),
+   widget = require('awful.widget'),
    tooltip = require('awful.tooltip'),
+   util = require('awful.util'),
 }
 
 local capi = {
@@ -50,26 +51,19 @@ local flaw = {
 -- functions.</p>
 --
 -- <p>A gadget is identified by its type and an identifier, which must
--- remain unique for one type. The gadget type MUST be composed of two
--- parts. The first part represents the module this gadget is part of
--- and can be composed of any character. The second part, separated
--- from the first one by a dot, is the kind of widget used internally
--- (ie. graph or textbox). It MUST match exactly a widget type as
--- defined in Awful API. Thus, it is common to create a new gadget
--- prototype this way:</p>
+-- remain unique for one type. The gadget type is a mnemonic used to
+-- create a gadget and identify it in the store (in conjonction with
+-- its name). It is usually composed of the module name and the kind
+-- of widget wrapped (like <code>BatteryIcon</code> or
+-- <code>CPUGraph</code>).</p>
 --
--- <div class='example'>
--- flaw.gadget.Gadget:new{ type = _NAME .. '.textbox' }
--- </div>
---
--- <p>Note that for the sake of simplicity, the above sample creates a
--- prototype from the <a href='#Gadget'><code>Gadget</code></a> one,
--- which you rarely should have to do since this module provides
--- specialised prototypes for all the awesome widget types. These
--- prototypes are <a href='#TextGadget'><code>TextGadget</code></a>,
--- <a href='#GraphGadget'><code>GraphGadget</code></a> and <a
--- href='#IconGadget'><code>IconGadget</code></a>. They provide the
--- raw gadgets mechanisms adapted to the type of widget they wrap.</p>
+-- <p>This module provides the simplest gadgets, which are a prototype
+-- for all the other ones. They are <a
+-- href='#TextGadget'><code>TextGadget</code></a>, <a
+-- href='#GraphGadget'><code>GraphGadget</code></a> and <a
+-- href='#IconGadget'><code>IconGadget</code></a> which embed a
+-- textbox, a graph and an imagebox respectively. They provide the raw
+-- gadgets mechanisms adapted to the type of widget they wrap.</p>
 --
 -- <p>All created gadgets are kept in a <a
 -- href='#_gadgets_cache'>global store</a> from which they can be
@@ -131,13 +125,14 @@ local _gadgets_cache = {}
 -- implementation silently overwrites the previous entry if it
 -- existed.</p>
 --
+-- @param  t the type of prototype to register.
 -- @param  p the prototype to register.
 -- @param  pf the provider factory to use when creating a new gadget
 --         using this new prototype.
 -- @param  gopt the default prototype options.
 -- @param  wopt the default options for the wrapped widget.
-function register(p, pf, gopt, wopt)
-   if p == nil or p.type == nil then
+function register(t, p, pf, gopt, wopt)
+   if p == nil or t == nil then
       flaw.helper.debug.error('flaw.gadget.record: invalid class.')
       return
    end
@@ -148,7 +143,7 @@ function register(p, pf, gopt, wopt)
 
    wopt = wopt or {}
 
-   _gadgets_cache[p.type] = {
+   _gadgets_cache[t] = {
       prototype = p,
       provider = pf,
       instances = {},
@@ -167,16 +162,17 @@ end
 -- silently invoked each time you call the gadget factory <a
 -- href='#new'><code>new</code></a> function.</p>
 --
+-- @param  t the type of gadget to store.
 -- @param  g the gadget to store.
 -- @return The gadget stored, or nil if the given gadget could not be stored.
-function add(g)
-   if g == nil or g.type == nil or g.id == nil then
+function add(t, g)
+   if g == nil or t == nil or g.id == nil then
       flaw.helper.debug.error('flaw.gadget.add: invalid gadget.')
    else
-      if _gadgets_cache[g.type] == nil then
+      if _gadgets_cache[t] == nil then
          flaw.helper.debug.error('flaw.gadget.add: unknown gadget class: ' .. g.type)
       end
-      _gadgets_cache[g.type].instances[g.id] = g
+      _gadgets_cache[t].instances[g.id] = g
       return g
    end
    return nil
@@ -189,13 +185,13 @@ end
 -- is nil. It also fails if no gadget in the store matches the given
 -- parameters.</p>
 --
--- @param  type the type of the gadget to retrieve.
+-- @param  t the type of the gadget to retrieve.
 -- @param  id the uniquer identifier of the gadget to retrieve.
 -- @return The matching gadget instance, or nil if information was
 --         incomplete or if there is no such gadget.
-function get(type, id)
-   if type ~= nil and id ~= nil then
-      return _gadgets_cache[type] ~= nil and _gadgets_cache[type].instances[id]
+function get(t, id)
+   if t ~= nil and id ~= nil then
+      return _gadgets_cache[t] ~= nil and _gadgets_cache[t].instances[id]
    end
    flaw.helper.debug.error('flaw.gadget.get: invalid information.')
    return nil
@@ -217,7 +213,7 @@ end
 -- monitoring with the mandatory <code>delay</code> gadget option and
 -- stores it in the store entry instances table.</p>
 --
--- @param  type the type of the gadget to create.
+-- @param  t the type of the gadget to create.
 -- @param  id the uniquer identifier of the gadget to create.
 -- @param  gopt the options to pass to the created gadget.
 -- @param  wopt the options to pass to the created wrapped widget.
@@ -225,15 +221,15 @@ end
 --         created. Note that the returned widget is present in the
 --         gadget store and can be retrieved with the <a
 --         href='#get'><code>get</code></a> function from now on.
-function new(type, id, gopt, wopt)
-   if type == nil or id == nil then
+function new(t, id, gopt, wopt)
+   if t == nil or id == nil then
       flaw.helper.debug.error('flaw.gadget.new: invalid information.')
       return nil
    end
 
-   local entry = _gadgets_cache[type]
+   local entry = _gadgets_cache[t]
    if entry == nil then
-      flaw.helper.debug.error('flaw.gadget.new: unknown gadget class: ' .. type)
+      flaw.helper.debug.error('flaw.gadget.new: unknown gadget class: ' .. t)
       return nil
    end
 
@@ -250,7 +246,7 @@ function new(type, id, gopt, wopt)
    -- Create the widget.
    local proto = entry.prototype
    local g = proto:new{ id = id, provider = entry.provider(id) }
-   if g._create ~= nil then g:_create() end
+   if g._create ~= nil then g:_create(wopt) end
 
    -- Configure the gadget.
    for k in pairs(gopt) do g[k] = gopt[k] end
@@ -262,7 +258,7 @@ function new(type, id, gopt, wopt)
    -- Initial display.
    g:update()
 
-   return add(g)
+   return add(t, g)
 end
 
 
@@ -275,7 +271,7 @@ end
 --
 -- @class table
 -- @name Gadget
-Gadget = { type = 'unknown.unknown' }
+Gadget = {}
 
 --- Gadget constructor.
 --
@@ -370,11 +366,6 @@ function Gadget:update()
    end
 end
 
---- Retrieve the wrapped widget type.
-function Gadget:get_widget_type()
-   return string.match(self.type, '.*%.(%a+)')
-end
-
 
 --- The text boxes wrapper gadget.
 --
@@ -386,11 +377,12 @@ end
 --
 -- @class table
 -- @name TextGadget
-TextGadget = Gadget:new{ type = 'unknown.textbox' }
+TextGadget = Gadget:new{}
 
 -- Create the wrapped gadget.
-function TextGadget:_create()
-   self.widget = capi.widget({ type = 'textbox', name = self.id })
+function TextGadget:_create(wopt)
+   self.widget = capi.widget(
+      awful.util.table.join(wopt, { type = 'textbox', name = self.id }))
 end
 
 --- Specialised callback for text gadget update.
@@ -424,7 +416,7 @@ end
 --
 -- @class table
 -- @name PatternGadget
-PatternGadget = Gadget:new{ type = 'unknown.textbox' }
+PatternGadget = Gadget:new{}
 
 --- Specialised callback for text gadget update.
 --
@@ -444,8 +436,9 @@ function PatternGadget:redraw()
 end
 
 -- Create the wrapped gadget.
-function PatternGadget:_create()
-   self.widget = capi.widget({ type = 'textbox', name = self.id })
+function PatternGadget:_create(wopt)
+   self.widget = capi.widget(
+      awful.util.table.join(wopt, { type = 'textbox', name = self.id }))
 end
 
 
@@ -456,7 +449,7 @@ end
 --
 -- @class table
 -- @name GraphGadget
-GraphGadget = Gadget:new{ type = 'unknown.graph' }
+GraphGadget = Gadget:new{}
 
 --- Specialised callback for graph gadget update.
 --
@@ -469,7 +462,7 @@ function GraphGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
       local data_set = self.provider.data[self.id] or self.provider.data
       for i, v in ipairs(self.values) do
-         self.hull:add_value(tonumber(data_set[v]))
+         self.hull:add_value(tonumber(data_set[v]) / 100)
       end
    end
 end
@@ -479,8 +472,9 @@ end
 -- In this case, the raw widget is still stored in
 -- <code>widget</code>, but the <code>awful.widget.graph</code> is
 -- stored in the <code>hull</code> one.
-function GraphGadget:_create()
-   self.hull = awful.graph({name = self.id})
+function GraphGadget:_create(wopt)
+   self.hull = awful.widget.graph(
+      awful.util.table.join(wopt, {name = self.id}))
    self.widget = self.hull.widget
 end
 
@@ -499,3 +493,12 @@ IconGadget = Gadget:new{ type = 'unknown.imagebox' }
 function IconGadget:_create()
    self.widget = capi.widget({ type = 'imagebox', name = self.id })
 end
+
+
+
+setmetatable(
+   _M, {
+      __index = function(_, t) return function (id, gopt, wopt)
+                                         return new(t, id, gopt, wopt)
+                                      end
+                end })

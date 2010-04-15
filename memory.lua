@@ -148,14 +148,10 @@ end
 
 -- A Text gadget for memory status display.
 flaw.gadget.register(
-   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
-   MemoryProviderFactory,
-   { pattern = '$ratio%' }
-)
+   'MemTextbox', flaw.gadget.TextGadget:new{}, MemoryProviderFactory,
+   { pattern = '$ratio%' })
 
 -- A graph gadget for memory status history.
 flaw.gadget.register(
-   flaw.gadget.GraphGadget:new{ type = _NAME .. '.graph' },
-   MemoryProviderFactory,
-   { delay = 1, values = { 'ratio' } }
-)
+   'MemGraph', flaw.gadget.GraphGadget:new{}, MemoryProviderFactory,
+   { delay = 1, values = { 'ratio' } })

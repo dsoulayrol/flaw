@@ -144,7 +144,5 @@ end
 
 -- A Text gadget prototype for GMail summary display.
 flaw.gadget.register(
-   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
-   GMailProviderFactory,
-   { delay = 300, pattern = '$count messages' }
-)
+   'GMailTextbox', flaw.gadget.TextGadget:new{}, GMailProviderFactory,
+   { delay = 300, pattern = '$count messages' })

@@ -243,14 +243,10 @@ end
 
 -- A Text gadget prototype for battery status display.
 flaw.gadget.register(
-   flaw.gadget.TextGadget:new{ type = _NAME .. '.textbox' },
-   BatteryProviderFactory,
-   { pattern = '$load% $status' }
-)
+   'BatteryTextbox', flaw.gadget.TextGadget:new{}, BatteryProviderFactory,
+   { pattern = '$load% $status' })
 
 -- An icon gadget prototype for battery status display.
 flaw.gadget.register(
-   flaw.gadget.IconGadget:new{ type = _NAME .. '.imagebox' },
-   BatteryProviderFactory,
-   { status = STATUS_UNKNOWN }
-)
+   'BatteryIcon', flaw.gadget.IconGadget:new{}, BatteryProviderFactory,
+   { status = STATUS_UNKNOWN })
