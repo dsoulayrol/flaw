@@ -23,16 +23,17 @@ local string = string
 local tonumber = tonumber
 
 local awful = {
-   tooltip = require('awful.tooltip')
+   graph = require('awful.widget.graph'),
+   tooltip = require('awful.tooltip'),
 }
 
 local capi = {
    timer = timer,
-   widget = widget
+   widget = widget,
 }
 
 local flaw = {
-   helper = require('flaw.helper')
+   helper = require('flaw.helper'),
 }
 
 
@@ -146,7 +147,6 @@ function register(p, pf, gopt, wopt)
    if gopt.delay == nil then gopt.delay = 10 end
 
    wopt = wopt or {}
-   if wopt.alignment == nil then wopt.alignment = 'right' end
 
    _gadgets_cache[p.type] = {
       prototype = p,
@@ -249,14 +249,8 @@ function new(type, id, gopt, wopt)
 
    -- Create the widget.
    local proto = entry.prototype
-   local g = proto:new{
-      id = id,
-      provider = entry.provider(id),
-      widget = capi.widget{
-         type = proto:get_widget_type(),
-         name = id,
-         align = wopt.alignment }
-   }
+   local g = proto:new{ id = id, provider = entry.provider(id) }
+   if g._create ~= nil then g:_create() end
 
    -- Configure the gadget.
    for k in pairs(gopt) do g[k] = gopt[k] end
@@ -394,6 +388,11 @@ end
 -- @name TextGadget
 TextGadget = Gadget:new{ type = 'unknown.textbox' }
 
+-- Create the wrapped gadget.
+function TextGadget:_create()
+   self.widget = capi.widget({ type = 'textbox', name = self.id })
+end
+
 --- Specialised callback for text gadget update.
 --
 -- <p>This implementation support two data models. First, it can apply
@@ -401,8 +400,6 @@ TextGadget = Gadget:new{ type = 'unknown.textbox' }
 -- gadget identifier is a key of the provider data, then the gadget
 -- pattern is applied using the content of this entry only in the
 -- provider data set.</p>
---
--- @see Gadget:update
 function TextGadget:redraw()
    local data_set = {}
    if self.provider ~= nil and self.provider.data ~= nil then
@@ -436,8 +433,6 @@ PatternGadget = Gadget:new{ type = 'unknown.textbox' }
 -- gadget identifier is a key of the provider data, then the gadget
 -- pattern is applied using the content of this entry only in the
 -- provider data set.</p>
---
--- @see Gadget:update
 function PatternGadget:redraw()
    local data_set = {}
    if self.provider ~= nil and self.provider.data ~= nil then
@@ -446,6 +441,11 @@ function PatternGadget:redraw()
    if self.pattern ~= nil then
       self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
    end
+end
+
+-- Create the wrapped gadget.
+function PatternGadget:_create()
+   self.widget = capi.widget({ type = 'textbox', name = self.id })
 end
 
 
@@ -465,15 +465,23 @@ GraphGadget = Gadget:new{ type = 'unknown.graph' }
 -- if the gadget identifier is a key of the provider data, then the
 -- gadget values is searched using the content of this entry only in
 -- the provider data set.</p>
---
--- @see Gadget:update
 function GraphGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
       local data_set = self.provider.data[self.id] or self.provider.data
       for i, v in ipairs(self.values) do
-         self.widget:plot_data_add(v, tonumber(data_set[v]))
+         self.hull:add_value(tonumber(data_set[v]))
       end
    end
+end
+
+-- Create the wrapped gadget.
+--
+-- In this case, the raw widget is still stored in
+-- <code>widget</code>, but the <code>awful.widget.graph</code> is
+-- stored in the <code>hull</code> one.
+function GraphGadget:_create()
+   self.hull = awful.graph({name = self.id})
+   self.widget = self.hull.widget
 end
 
 
@@ -486,3 +494,8 @@ end
 -- @class table
 -- @name IconGadget
 IconGadget = Gadget:new{ type = 'unknown.imagebox' }
+
+-- TODO
+function IconGadget:_create()
+   self.widget = capi.widget({ type = 'imagebox', name = self.id })
+end
