@@ -104,7 +104,7 @@ module('flaw.memory')
 --
 -- @class table
 -- @name MemoryProvider
-MemoryProvider = flaw.provider.Provider:new{ type = _NAME, data = {} }
+MemoryProvider = flaw.provider.CyclicProvider:new{ type = _NAME, data = {} }
 
 --- Callback for provider refresh.
 function MemoryProvider:do_refresh()

@@ -139,7 +139,7 @@ STATUS_DISCHARGING = 'v'
 --
 -- @class table
 -- @name BatteryProvider
-BatteryProvider = flaw.provider.Provider:new{ type = _NAME }
+BatteryProvider = flaw.provider.CyclicProvider:new{ type = _NAME }
 
 --- Load state information from /proc/acpi/battery/&lt;ID&gt;/state if it exists
 function BatteryProvider:load_from_procfs()

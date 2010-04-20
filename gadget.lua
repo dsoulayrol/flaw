@@ -29,7 +29,6 @@ local awful = {
 }
 
 local capi = {
-   timer = timer,
    widget = widget,
 }
 
@@ -246,7 +245,7 @@ function new(t, id, gopt, wopt)
    -- Create the widget.
    local proto = entry.prototype
    local g = proto:new{ id = id, provider = entry.provider(id) }
-   if g._create ~= nil then g:_create(wopt) end
+   if g.create ~= nil then g:create(wopt) end
 
    -- Configure the gadget.
    for k in pairs(gopt) do g[k] = gopt[k] end
@@ -254,9 +253,6 @@ function new(t, id, gopt, wopt)
 
    -- Start monitoring.
    g:register(gopt.delay)
-
-   -- Initial display.
-   g:update()
 
    return add(t, g)
 end
@@ -305,10 +301,6 @@ function Gadget:register(delay)
    if self.provider ~= nil then
       self.provider:subscribe(self, delay)
    end
-
-   t = capi.timer{ timeout = delay }
-   t:add_signal('timeout', function() self:update() end, true)
-   t:start()
 end
 
 --- Register an event to the gadget.
@@ -355,14 +347,12 @@ end
 -- it calls its own redraw function, if defined.</p>
 function Gadget:update()
    if self.provider ~= nil then
-      if self.provider:refresh(self) then
-         for t, a in pairs(self.events) do
-            if t:test(self.provider.data) then
+      for c, a in pairs(self.events) do
+         if c:test(self.provider.data) then
                a(self, t)
             end
          end
          if self.redraw then self:redraw() end
-      end
    end
 end
 
@@ -380,7 +370,7 @@ end
 TextGadget = Gadget:new{}
 
 -- Create the wrapped gadget.
-function TextGadget:_create(wopt)
+function TextGadget:create(wopt)
    self.widget = capi.widget(
       awful.util.table.join(wopt, { type = 'textbox', name = self.id }))
 end
@@ -436,7 +426,7 @@ function PatternGadget:redraw()
 end
 
 -- Create the wrapped gadget.
-function PatternGadget:_create(wopt)
+function PatternGadget:create(wopt)
    self.widget = capi.widget(
       awful.util.table.join(wopt, { type = 'textbox', name = self.id }))
 end
@@ -472,7 +462,7 @@ end
 -- In this case, the raw widget is still stored in
 -- <code>widget</code>, but the <code>awful.widget.graph</code> is
 -- stored in the <code>hull</code> one.
-function GraphGadget:_create(wopt)
+function GraphGadget:create(wopt)
    self.hull = awful.widget.graph(
       awful.util.table.join(wopt, {name = self.id}))
    self.widget = self.hull.widget
@@ -490,7 +480,7 @@ end
 IconGadget = Gadget:new{ type = 'unknown.imagebox' }
 
 -- TODO
-function IconGadget:_create()
+function IconGadget:create()
    self.widget = capi.widget({ type = 'imagebox', name = self.id })
 end
 

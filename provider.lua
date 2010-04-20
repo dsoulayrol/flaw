@@ -16,9 +16,13 @@
 
 
 -- Grab environment.
-local ipairs = ipairs
+local pairs = pairs
 local os = os
 local setmetatable = setmetatable
+
+local capi = {
+   timer = timer,
+}
 
 local flaw = {
    helper = require('flaw.helper'),
@@ -27,23 +31,20 @@ local flaw = {
 
 --- Providers core mechanisms.
 --
--- <p><b>flaw</b> tries to minimise system access and data refresh.
--- Since all information do not have the same expiration rate, all
--- gadgets refresh themselves independently. And since some gadgets
--- can share information, all data is provided by provider objects
--- which can be shared among gadgets. Providers maintain status data
--- from the system and update themselves only when necessary (ie. when
--- the gadget with the shortest refresh rate demands it).</p>
+-- <p>In <b>flaw</b>, all data is gathered by provider objects which,
+-- in an attempt to minimize resources usage, can be shared among
+-- gadgets. The providers can poll disks or memory for their
+-- information, or can be updated by scripts or direct <b>Lua</b>
+-- invocation, like <b>awful</b> callbacks. When updated, or at a
+-- given rate, providers update the gadgets that have subscribed to
+-- them.
 --
 -- <p>Providers are normally handled automatically when a gadget is
 -- created. You only have to take care of them when you are writing
 -- your own gadget, or if you want to create a new provider, or extend
--- an existing one.</p>
---
--- <p><b>flaw</b> provides many providers for common system
--- information. Actually, there is nearly one provider per information
--- type. The existing providers are stored in the module of the widget
--- type they serve.</p>
+-- an existing one. <b>flaw</b> already implements many providers for
+-- common system information. The existing providers are usually
+-- stored in the module of the widget type they serve.</p>
 --
 -- <p>A provider is identified by its type and an identifier, which
 -- must remain unique for one type. The provider type usually
@@ -122,25 +123,12 @@ end
 
 --- The Provider prototype.
 --
--- <p>This is the root prototype of all providers. It provides common
--- methods for refresh handling. It also defines the following
--- mandatory properties.</p>
---
--- <ul>
--- <li><code>interval</code><br/>
--- This is the provider refresh rate. Its default value is 10 seconds
--- but it is normally updated each time a gadget starts to use the
--- provider.</li>
--- <li><code>timestamp</code><br/>
--- This is the time stamp of the current data set. The provider only
--- updates itself if asked to do so after the <code>interval</code>
--- value from this time stamp. The timestamp value is initialised to 0
--- and is reset each time the provider updates itself.</li>
--- </ul>
+-- <p>This is the root prototype of all providers. It defines nothing
+-- but the prototype's type and a method for gadgets subscription.</p>
 --
 -- @class table
 -- @name Provider
-Provider = { type = 'unknown', interval = 10, timestamp = 0 }
+Provider = { type = 'unknown' }
 
 --- Provider constructor.
 --
@@ -161,68 +149,119 @@ end
 
 --- Subscribe a gadget to this provider.
 --
--- <p>This is the method a gadget automatically uses, when created by the
--- gadget factory, to register itself to its provider. By registering
--- itself, the gadget can ask for a new poll interval to the
--- provider. The provider will store the new interval if it is
--- inferior to its current poll delay.</p>
+-- <p>This is the method a gadget automatically uses, when created by
+-- the gadget factory, to register itself to its provider. The root
+-- provider does strictly nothing with this subscription, but any
+-- active provider uses the subscribers list to update its
+-- gadgets.</p>
 --
 -- <p>This method immediately fails if the given gadget is nil. On
 -- success, the gadget is stored in the provider internal subscribers
 -- list.</p>
 --
 -- @param  g the gadget subscriber.
--- @param  delay the new poll interval asked by the a table with
---         default values.
 -- @return True if the subscriber was correctly stored, False otherwise.
-function Provider:subscribe(g, delay)
+function Provider:subscribe(g)
    if g == nil then
       flaw.helper.debug.error('flaw.provider.Provider:subscribe: invalid gadget')
-   else
-      self.subscribers[g] = 0
-      if delay ~= nil and delay < self.interval then
-         self.interval = delay
+   return false
+end
+   self.subscribers[g] = { timestamp = os.time() }
+   return true
+end
+
+--- The Cyclic Provider prototype.
+--
+-- <p>This specialized provider is the root of all the providers
+-- needing to provide cyclic information, based on files, network and
+-- so on, rather than on events. Cyclic providers poll resources
+-- status from system only when necessary (ie. when the gadget with
+-- the shortest refresh rate demands it).</p>
+--
+-- <p>The CyclicProvider relies on a C API timer. The timer timeout
+-- value defaults to 60 seconds but is updated each time a gadget
+-- starts to use the provider, if its own rate is shorter. Note that
+-- the higher rate demand only will be served in time, all others will
+-- be refreshed using a comparison between their timestamp and the
+-- refresh date. For example, if a provider is asked to refresh every
+-- 10 seconds and then every 3 seconds, its timer will be set to 3
+-- seconds. The second gadget will be refreshed exactly in time,
+-- whereas the first will be refreshed at 12 seconds, 21 seconds, 30
+-- seconds, and so on.</p>
+--
+-- <p>All CyclicProvider also define a <code>timestamp</code> value
+-- which can be used in specific treatments to know the last refresh
+-- date.</p>
+--
+-- @class table
+-- @name CyclicProvider
+CyclicProvider = Provider:new{ type = 'unknown.cyclic', timestamp = 0, timer = nil }
+
+--- Subscribe a gadget to this provider.
+--
+-- <p>The CyclicProvider specialised method adds the poll timer
+-- handling to the parent method. It also requires the gadget's rate
+-- as second argument (which defaults to 60s).</p>
+--
+-- <p>This method immediately fails if the given gadget is nil. On
+-- success, the gadget is stored in the provider internal subscribers
+-- list.</p>
+--
+-- @param  g the gadget subscriber.
+-- @param  rate the new poll interval asked by the gadget.
+-- @return True if the subscriber was correctly stored and the timer
+--         correctly started or reconfigured (if necessary), False otherwise.
+function CyclicProvider:subscribe(g, rate)
+   rate = rate or 60
+   if Provider.subscribe(self, g) then
+      self.subscribers[g].rate = rate
+      local start = false
+      if self.timer == nil then
+         self.timer = capi.timer{ timeout = 60 }
+         self.timer:add_signal('timeout', function() self:refresh() end, true)
+         start = true
       end
+      if rate < self.timer.timeout then
+         self.timer.timeout = rate
+      end
+      if start then
+         self.timer:start()
+      end
+
+      -- Initial refresh.  TODO: this should be invoked only for the
+      -- given gadget, after checking of course some data was gathered
+      -- once.
+      self:refresh()
+
       return true
    end
    return false
 end
 
---- Check whether cached data are still valid.
+--- Refresh the provider status.
 --
--- @return True is the provider should refresh its data set, False otherwise.
-function Provider:is_dirty()
-   return self.timestamp <= os.time() - self.interval
-end
-
---- Refresh the provider status if necessary.
+-- <p>This callback is invoked by the provider timer, which timeouts
+-- at the highest asked rate. The actual refresh process is dedicated
+-- to the <code>do_refresh</code> method, which is called with no
+-- argument. This definition depends on the provider role, and should
+-- be defined in all derived prototypes.</p>
 --
--- <p>This is the method invoked by the provider subscribers when they
--- want to update themselves. The refresh is achieved only if <a
--- href='#Provider:is_dirty'><code>Provider:is_dirty</code></a>
--- returns true.</p>
+-- <p>After refresh is done, the gadgets are redrawn.</p>
 --
--- <p>This method actually only checks if refresh is necessary, and
--- eventually invokes another method do to it. The actual refresh
--- process is dedicated to the <code>do_refresh</code> method, which
--- is called with no argument. This definition depends on the provider
--- role, and should be defined in all derived prototypes.</p>
---
--- @param  g the gadget which is asking for the provider to refresh.
 -- @return True is the provider did refresh its data set since the
 --         given gadget last asked for the refresh.
-function Provider:refresh(g)
-   if self:is_dirty() then
-      if self.do_refresh then self:do_refresh() end
-      self.timestamp = os.time()
-      if g ~= nil and self.subscribers[g] ~= nil then
-         self.subscribers[g] = self.timestamp
-      return true
-      end
+function CyclicProvider:refresh()
+   if self.do_refresh then
+      self:do_refresh()
    else
-      if g ~= nil and self.subscribers[g] ~= nil then
-         return self.subscribers[g] < self.timestamp
+      flaw.helper.debug.warn(
+         'CyclicProvider ' .. self.type .. '.' .. self.id .. ' misses do_refresh()')
+   end
+      self.timestamp = os.time()
+   for g, props in pairs(self.subscribers) do
+      if props['timestamp'] + props['rate'] >= self.timestamp then
+         props['timestamp'] = self.timestamp
+         g:update()
       end
    end
-   return false
 end
