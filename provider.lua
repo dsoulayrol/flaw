@@ -170,6 +170,18 @@ end
    return true
 end
 
+--- Refresh gadgets subscribed to this provider.
+--
+-- <p>This method is a facility for providers to invoke all the
+-- gadgets refresh when they are done with data gathering.</p>
+function Provider:refresh_gadgets()
+   for g, props in pairs(self.subscribers) do
+      props['timestamp'] = self.timestamp
+      g:update()
+   end
+end
+
+
 --- The Cyclic Provider prototype.
 --
 -- <p>This specialized provider is the root of all the providers
@@ -228,10 +240,8 @@ function CyclicProvider:subscribe(g, rate)
          self.timer:start()
       end
 
-      -- Initial refresh.  TODO: this should be invoked only for the
-      -- given gadget, after checking of course some data was gathered
-      -- once.
-      self:refresh()
+      -- Initial refresh.
+      self:refresh(g)
 
       return true
    end
@@ -248,18 +258,33 @@ end
 --
 -- <p>After refresh is done, the gadgets are redrawn.</p>
 --
+-- @param  g if provided, this gadget only is refreshed.
 -- @return True is the provider did refresh its data set since the
 --         given gadget last asked for the refresh.
-function CyclicProvider:refresh()
+function CyclicProvider:refresh(g)
    if self.do_refresh then
       self:do_refresh()
+      if g ~= nil then
+         self.subscribers[g].timestamp = self.timestamp
+         g:update()
+      else
+         self:refresh_gadgets()
+      end
    else
       flaw.helper.debug.warn(
          'CyclicProvider ' .. self.type .. '.' .. self.id .. ' misses do_refresh()')
    end
-      self.timestamp = os.time()
+end
+
+--- Refresh gadgets subscribed to this provider.
+--
+-- <p>Redefined here to handle the rate required by the different
+-- gadgets. All child providers should rely on the
+-- <code>refresh</code> method which calls directly this one.</p>
+function CyclicProvider:refresh_gadgets()
+   self.timestamp = os.time()
    for g, props in pairs(self.subscribers) do
-      if props['timestamp'] + props['rate'] >= self.timestamp then
+      if props['timestamp'] + props['rate'] <= self.timestamp then
          props['timestamp'] = self.timestamp
          g:update()
       end
