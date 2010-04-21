@@ -55,6 +55,7 @@ local cpu = require('flaw.cpu')
 local gmail = require('flaw.gmail')
 local memory = require('flaw.memory')
 local network = require('flaw.network')
+local title = require('flaw.title')
 
 -- Load only the following modules if necessary hardware element or
 -- software package is present.
