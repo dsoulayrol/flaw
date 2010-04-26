@@ -39,9 +39,9 @@ function load_battery_support()
 end
 
 function load_alsa_support()
-   -- TODO load this only if necessary.
-   -- return require('flaw.alsa')
-   return nil
+   -- TODO: load this only if amixer, the ALSA subsytem and at least
+   -- one card are present.
+   return require('flaw.alsa')
 end
 
 -- Essential modules.

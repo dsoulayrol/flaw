@@ -8,7 +8,6 @@ require("beautiful")
 require("naughty")
 -- Flaw Tests
 require("flaw")
-require("flaw.cpu")
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -17,14 +16,24 @@ beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 -- Gadgets population.
 local gadgets = {}
 
+-- Calendar
+-- gadgets.calendar = flaw.gadget.CalendarTextbox(
+--    '', { clock_format = ' | %a %d %B - <span color="' .. beautiful.fg_focus .. '">%H:%M</span>' })
+
 -- Client title
 gadgets.title = flaw.gadget.TitleTextbox(
    '', { pattern = ' | <b><small>$title</small></b>' })
 
 -- GMail
 gadgets.gmail = flaw.gadget.GMailTextbox(
-   '', { pattern = ' | GMail: <span color="' .. beautiful.fg_focus .. '">$count</span>' })
+   '', { pattern = ' | GMail: <span color="' .. beautiful.fg_focus .. '">$count</span> ' })
 gadgets.gmail:set_tooltip('Unread messages at $timestamp:\n$mails')
+
+-- ALSA
+-- gadgets.alsa_icon = flaw.gadget.AlsaIcon(
+--    'alsa', {}, { image = image(beautiful.icon_cpu) })
+
+gadgets.alsa = flaw.gadget.AlsaTextbox('0', { pattern = ' | Vol.:$volume% ' })
 
 -- Create CPU, CPUfreq monitor
 -- gadgets.cpu_icon = flaw.gadget.CPUIcon(
@@ -173,12 +182,9 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- }}}
 
 -- {{{ Wibox
--- Create a textclock widget
-mytextclock = awful.widget.textclock({ align = "right" })
 
 -- Create a wibox for each screen and add it
 mywibox = {}
-mypromptbox = {}
 mylayoutbox = {}
 mytaglist = {}
 mytaglist.buttons = awful.util.table.join(
@@ -191,8 +197,6 @@ mytaglist.buttons = awful.util.table.join(
                     )
 
 for s = 1, screen.count() do
-    -- Create a promptbox for each screen
-    mypromptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
     -- Create an imagebox widget which will contains an icon indicating which layout we're using.
     -- We need one layoutbox per screen.
     mylayoutbox[s] = awful.widget.layoutbox(s)
@@ -211,21 +215,21 @@ for s = 1, screen.count() do
         {
             mylauncher,
             mytaglist[s],
-            mypromptbox[s],
 
+--            gadgets.calendar.widget,
+            gadgets.gmail.widget,
+            gadgets.alsa.widget,
 --            gadgets.cpu_icon.widget or nil,
             gadgets.cpu_graph.widget or nil,
 --            gadgets.net_icon.widget or nil,
             gadgets.net_graph.widget or nil,
             gadgets.battery_box and gadgets.battery_box.widget or nil,
             gadgets.battery_icon and gadgets.battery_icon.widget or nil,
-            gadgets.gmail.widget,
             gadgets.title.widget,
 
             layout = awful.widget.layout.horizontal.leftright
         },
         mylayoutbox[s],
-        mytextclock,
         layout = awful.widget.layout.horizontal.rightleft
     }
 end
@@ -283,18 +287,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "h",     function () awful.tag.incncol( 1)         end),
     awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1)         end),
     awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
-    awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
-
-    -- Prompt
-    awful.key({ modkey },            "r",     function () mypromptbox[mouse.screen]:run() end),
-
-    awful.key({ modkey }, "x",
-              function ()
-                  awful.prompt.run({ prompt = "Run Lua code: " },
-                  mypromptbox[mouse.screen].widget,
-                  awful.util.eval, nil,
-                  awful.util.getdir("cache") .. "/history_eval")
-              end)
+    awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end)
 )
 
 clientkeys = awful.util.table.join(
