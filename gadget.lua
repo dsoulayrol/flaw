@@ -136,17 +136,11 @@ function register(t, p, pf, gopt, wopt)
       return
    end
 
-   -- Store default important values.
-   gopt = gopt or {}
-   if gopt.delay == nil then gopt.delay = 10 end
-
-   wopt = wopt or {}
-
    _gadgets_cache[t] = {
       prototype = p,
       provider = pf,
       instances = {},
-      defaults = { gadget = gopt, widget = wopt }
+      defaults = { gadget = gopt or {}, widget = wopt or {} }
    }
 end
 
@@ -245,14 +239,16 @@ function new(t, id, gopt, wopt)
    -- Create the widget.
    local proto = entry.prototype
    local g = proto:new{ id = id, provider = entry.provider(id) }
-   if g.create ~= nil then g:create(wopt) end
 
    -- Configure the gadget.
    for k in pairs(gopt) do g[k] = gopt[k] end
-   for k in pairs(wopt) do g.widget[k] = wopt[k] end
+   if g.create ~= nil then
+      g:create(wopt)
+      for k in pairs(wopt) do g.widget[k] = wopt[k] end
+   end
 
    -- Start monitoring.
-   g:register(gopt.delay)
+   if gopt.delay then g:register(gopt.delay) end
 
    return add(t, g)
 end
@@ -295,8 +291,6 @@ end
 --
 -- @param  delay the delay between gadget updates in seconds.
 function Gadget:register(delay)
-   delay = delay or 10
-
    -- Subscribe this gadget to the provider.
    if self.provider ~= nil then
       self.provider:subscribe(self, delay)
@@ -390,7 +384,7 @@ function TextGadget:redraw()
    if self.pattern ~= nil then
       self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
    end
-   if self.tooltip then
+   if self.tooltip ~= nil then
       self.tooltip.widget:set_text(
          flaw.helper.strings.format(self.tooltip.pattern, data_set))
    end
