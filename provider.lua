@@ -281,10 +281,11 @@ end
 -- <p>Redefined here to handle the rate required by the different
 -- gadgets. All child providers should rely on the
 -- <code>refresh</code> method which calls directly this one.</p>
-function CyclicProvider:refresh_gadgets()
+function CyclicProvider:refresh_gadgets(force)
+   local force = force or false
    self.timestamp = os.time()
    for g, props in pairs(self.subscribers) do
-      if props['timestamp'] + props['rate'] <= self.timestamp then
+      if force or props['timestamp'] + props['rate'] <= self.timestamp then
          props['timestamp'] = self.timestamp
          g:update()
       end

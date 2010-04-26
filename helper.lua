@@ -165,7 +165,9 @@ function strings.format(pattern, args)
    pattern = pattern or ''
    args = args or {}
    for key, value in pairs(args) do
-      pattern = string.gsub(pattern, '$' .. key, value)
+      if key ~= nil and value ~= nil then
+         pattern = string.gsub(pattern, '$' .. key, value)
+      end
    end
    return pattern
 end
