@@ -248,7 +248,7 @@ function new(t, id, gopt, wopt)
    end
 
    -- Start monitoring.
-   if gopt.delay then g:register(gopt.delay) end
+   g:register(gopt.delay)
 
    return add(t, g)
 end
@@ -343,10 +343,10 @@ function Gadget:update()
    if self.provider ~= nil then
       for c, a in pairs(self.events) do
          if c:test(self.provider.data) then
-               a(self, t)
-            end
+            a(self, t)
          end
-         if self.redraw then self:redraw() end
+      end
+      if self.redraw then self:redraw() end
    end
 end
 
