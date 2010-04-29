@@ -100,9 +100,12 @@ CHANNEL = 'Master'
 --
 -- <ul>
 -- <li><code>volume</code><br/>
--- The volume in percents on the Master channel on the monitored card.</li>
--- <li><code>mute</code><br/>
--- Whether the Master channel is muted on the monitored card.</li>
+-- The volume in percent on the Master channel on the monitored card,
+-- as a number.</li>
+-- <li><code>s_volume</code><br/>
+-- A string which represents the current volume in percent of the
+-- Master channel on the monitored card, with a visual hint when it is
+-- muted. The string is 3 characters long, padded by the left.</li>
 -- </ul>
 --
 -- @class table
@@ -120,12 +123,12 @@ function ALSAProvider:do_refresh()
    if f ~= nil then
       local status = f:read('*all')
       if status ~=nil then
-         self.data.volume = tonumber(string.match(status, '(%d?%d?%d)%%'))
+         self.data.s_volume = flaw.helper.strings.pad_left(
+            string.match(status, '(%d?%d?%d)%%'), 3)
+         self.data.volume = tonumber(self.data.s_volume)
          status = string.match(status, '%[(o[^%]]*)%]')
-         if string.find(status, 'on', 1, true) then
-            self.data.mute = 'yes'
-         else
-            self.data.mute = 'no'
+         if string.find(status, 'off', 1, true) then
+            self.data.s_volume = '---'
          end
       end
       f:close()
@@ -169,7 +172,7 @@ function ALSAProviderFactory(id)
    local p = flaw.provider.get(_NAME, id)
    -- Create the provider if necessary.
    if p == nil then
-      p = ALSAProvider:new{ id = id, data = { volume = 0, mute = 'no'} }
+      p = ALSAProvider:new{ id = id, data = { volume = 0, s_volume = '---'} }
       flaw.provider.add(p)
    end
    return p
@@ -190,7 +193,24 @@ end
 
 flaw.gadget.register(
    'AlsaTextbox', ALSATextGadget, ALSAProviderFactory,
-   { delay = 1, pattern = '$volume%' })
+   { delay = 1, pattern = '$s_volume%' })
+
+-- A progress bar gadget prototype for ALSA status display.
+ALSAProgressGadget = flaw.gadget.ProgressGadget:new{}
+
+-- Create the wrapped gadget.
+function ALSAProgressGadget:create(wopt)
+   flaw.gadget.ProgressGadget.create(self, wopt)
+   self.widget:buttons(
+      awful.util.table.join(
+         awful.button({ }, 4, function() self.provider:raise() end),
+         awful.button({ }, 5, function() self.provider:lower() end),
+         awful.button({ }, 1, function() self.provider:mute() end)))
+end
+
+flaw.gadget.register(
+   'AlsaProgress', ALSAProgressGadget, ALSAProviderFactory,
+   { delay = 1, value = 'volume' })
 
 -- An icon gadget prototype for ALSA status display.
 ALSAIconGadget = flaw.gadget.IconGadget:new{}

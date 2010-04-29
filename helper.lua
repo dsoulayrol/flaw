@@ -128,8 +128,27 @@ function strings.crop(str, width)
    return str
 end
 
--- Force a fixed width on a string with spaces.
-function strings.pad_string(str, width)
+-- Force a fixed width on the given string. If the string is too
+-- short, it is padded with spaces on the left. If too long, it is
+-- cropped without an ellipsis.
+function strings.pad_left(str, width)
+   str = str or ''
+   local len = str:len()
+   width = width or len
+   if width > len then
+      for i = 1, width - len do
+         str = ' ' .. str
+      end
+   else
+      str = str:sub(0, width)
+   end
+   return str
+end
+
+-- Force a fixed width on the given string. If the string is too
+-- short, it is padded with spaces on the right. If too long, it is
+-- cropped without an ellipsis.
+function strings.pad_right(str, width)
    str = str or ''
    local len = str:len()
    width = width or len

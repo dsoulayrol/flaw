@@ -33,7 +33,16 @@ gadgets.gmail:set_tooltip('Unread messages at $timestamp:\n$mails')
 -- gadgets.alsa_icon = flaw.gadget.AlsaIcon(
 --    'alsa', {}, { image = image(beautiful.icon_cpu) })
 
-gadgets.alsa = flaw.gadget.AlsaTextbox('0', { pattern = ' | Vol.:$volume% ' })
+gadgets.alsa = flaw.gadget.AlsaTextbox('0', { pattern = ' | Vol.:$s_volume% ' })
+gadgets.alsa_bar = flaw.gadget.AlsaProgress('0')
+gadgets.alsa_bar.hull:set_vertical(true)
+gadgets.alsa_bar.hull:set_height(18)
+gadgets.alsa_bar.hull:set_width(12)
+-- gadgets.alsa_bar.hull:set_ticks(true)
+-- gadgets.alsa_bar.hull:set_ticks_size(2)
+gadgets.alsa_bar.hull:set_background_color(beautiful.bg_normal)
+gadgets.alsa_bar.hull:set_gradient_colors(
+   { beautiful.fg_normal, beautiful.fg_focus, beautiful.fg_urgent})
 
 -- Create CPU, CPUfreq monitor
 -- gadgets.cpu_icon = flaw.gadget.CPUIcon(
@@ -219,6 +228,7 @@ for s = 1, screen.count() do
 --            gadgets.calendar.widget,
             gadgets.gmail.widget,
             gadgets.alsa.widget,
+            gadgets.alsa_bar.widget,
 --            gadgets.cpu_icon.widget or nil,
             gadgets.cpu_graph.widget or nil,
 --            gadgets.net_icon.widget or nil,
