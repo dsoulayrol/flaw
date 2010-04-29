@@ -17,8 +17,8 @@ beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 local gadgets = {}
 
 -- Calendar
--- gadgets.calendar = flaw.gadget.CalendarTextbox(
---    '', { clock_format = ' | %a %d %B - <span color="' .. beautiful.fg_focus .. '">%H:%M</span>' })
+gadgets.calendar = flaw.gadget.CalendarTextbox(
+   '', { clock_format = ' | %a %d %B - <span color="' .. beautiful.fg_focus .. '">%H:%M</span>' })
 
 -- Client title
 gadgets.title = flaw.gadget.TitleTextbox(
@@ -225,7 +225,7 @@ for s = 1, screen.count() do
             mylauncher,
             mytaglist[s],
 
---            gadgets.calendar.widget,
+            gadgets.calendar.widget,
             gadgets.gmail.widget,
             gadgets.alsa.widget,
             gadgets.alsa_bar.widget,

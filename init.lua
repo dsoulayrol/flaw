@@ -51,6 +51,7 @@ local event = require('flaw.event')
 local helper = require('flaw.helper')
 
 -- Implementation modules.
+local calendar = require('flaw.calendar')
 local cpu = require('flaw.cpu')
 local gmail = require('flaw.gmail')
 local memory = require('flaw.memory')
