@@ -59,10 +59,12 @@ local flaw = {
 -- <p>This module provides the simplest gadgets, which are a prototype
 -- for all the other ones. They are <a
 -- href='#TextGadget'><code>TextGadget</code></a>, <a
--- href='#GraphGadget'><code>GraphGadget</code></a> and <a
+-- href='#GraphGadget'><code>GraphGadget</code></a>, <a
+-- href='#ProgressGadget'><code>ProgressGadget</code></a> and <a
 -- href='#IconGadget'><code>IconGadget</code></a> which embed a
--- textbox, a graph and an imagebox respectively. They provide the raw
--- gadgets mechanisms adapted to the type of widget they wrap.</p>
+-- textbox, a graph, a progress bar and an imagebox respectively. They
+-- provide the raw gadgets mechanisms adapted to the type of widget
+-- they wrap.</p>
 --
 -- <p>All created gadgets are kept in a <a
 -- href='#_gadgets_cache'>global store</a> from which they can be
@@ -257,9 +259,7 @@ end
 --- The Gadget prototype.
 --
 -- <p>This is the root prototype of all gadgets. It provides common
--- methods for events and refresh handling. The only property, other
--- than <code>type</code> and <code>id</code>, handled by this object
--- is <code>delay</code>, the refresh rate of the gadget.</p>
+-- methods for events and refresh handling.</p>
 --
 -- @class table
 -- @name Gadget
@@ -423,6 +423,44 @@ end
 -- stored in the <code>hull</code> one.
 function GraphGadget:create(wopt)
    self.hull = awful.widget.graph(
+      awful.util.table.join(wopt, {name = self.id}))
+   self.widget = self.hull.widget
+end
+
+
+--- The progress bar wrapper gadget.
+--
+-- The progress bar represents a numeric value using a horizontal or
+-- vertical gauge. The gadget <code>value</code> field is the name of
+-- the provider property to be represented.
+--
+-- @class table
+-- @name ProgressGadget
+ProgressGadget = Gadget:new{}
+
+--- Specialised callback for progress gadget update.
+--
+-- <p>This implementation supports two data models. First, it can
+-- search the gadget <code>value</code> field directly in the provider
+-- data table. But if the gadget identifier is a key of the provider
+-- data table, then the gadget <code>value</code> field is searched in
+-- the provider's <code>data[id]</code> table.</p>
+function ProgressGadget:redraw()
+   if self.provider ~= nil and self.provider.data ~= nil then
+      local data_set = self.provider.data[self.id] or self.provider.data
+      self.hull:set_value(tonumber(data_set[self.value]) / 100)
+   end
+end
+
+-- Create the wrapped gadget.
+--
+-- In this case, the raw widget is still stored in
+-- <code>widget</code>, but the <code>awful.widget.progressbar</code>
+-- is stored in the <code>hull</code> one. To configure the
+-- <code>hull</code>, see
+-- <http://awesome.naquadah.org/doc/api/modules/awful.widget.progressbar.html>.
+function ProgressGadget:create(wopt)
+   self.hull = awful.widget.progressbar(
       awful.util.table.join(wopt, {name = self.id}))
    self.widget = self.hull.widget
 end
