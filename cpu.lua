@@ -36,7 +36,7 @@ local flaw = {
 module('flaw.cpu')
 
 -- The cpu provider.
-CPUProvider = flaw.provider.Provider:new{ type = _NAME, data = {} }
+CPUProvider = flaw.provider.CyclicProvider:new{ type = _NAME, data = {} }
 
 -- Callback for provider refresh.
 -- See Provider:do_refresh.

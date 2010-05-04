@@ -47,7 +47,7 @@ module('flaw.network')
 BANDWIDTH = 120000
 
 --- The network provider prototype.
-NetworkProvider = flaw.provider.Provider:new{ type = _NAME }
+NetworkProvider = flaw.provider.CyclicProvider:new{ type = _NAME }
 
 --- Callback for provider refresh.
 function NetworkProvider:do_refresh()

@@ -39,9 +39,9 @@ function load_battery_support()
 end
 
 function load_alsa_support()
-   -- TODO load this only if necessary.
-   -- return require('flaw.alsa')
-   return nil
+   -- TODO: load this only if amixer, the ALSA subsytem and at least
+   -- one card are present.
+   return require('flaw.alsa')
 end
 
 -- Essential modules.
@@ -51,10 +51,12 @@ local event = require('flaw.event')
 local helper = require('flaw.helper')
 
 -- Implementation modules.
+local calendar = require('flaw.calendar')
 local cpu = require('flaw.cpu')
 local gmail = require('flaw.gmail')
 local memory = require('flaw.memory')
 local network = require('flaw.network')
+local title = require('flaw.title')
 
 -- Load only the following modules if necessary hardware element or
 -- software package is present.

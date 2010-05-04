@@ -75,7 +75,7 @@ module('flaw.gmail')
 --
 -- @class table
 -- @name GMailProvider
-GMailProvider = flaw.provider.Provider:new{ type = _NAME }
+GMailProvider = flaw.provider.CyclicProvider:new{ type = _NAME }
 
 --- Callback for provider refresh.
 function GMailProvider:do_refresh()

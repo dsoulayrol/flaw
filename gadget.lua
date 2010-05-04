@@ -29,7 +29,6 @@ local awful = {
 }
 
 local capi = {
-   timer = timer,
    widget = widget,
 }
 
@@ -60,10 +59,12 @@ local flaw = {
 -- <p>This module provides the simplest gadgets, which are a prototype
 -- for all the other ones. They are <a
 -- href='#TextGadget'><code>TextGadget</code></a>, <a
--- href='#GraphGadget'><code>GraphGadget</code></a> and <a
+-- href='#GraphGadget'><code>GraphGadget</code></a>, <a
+-- href='#ProgressGadget'><code>ProgressGadget</code></a> and <a
 -- href='#IconGadget'><code>IconGadget</code></a> which embed a
--- textbox, a graph and an imagebox respectively. They provide the raw
--- gadgets mechanisms adapted to the type of widget they wrap.</p>
+-- textbox, a graph, a progress bar and an imagebox respectively. They
+-- provide the raw gadgets mechanisms adapted to the type of widget
+-- they wrap.</p>
 --
 -- <p>All created gadgets are kept in a <a
 -- href='#_gadgets_cache'>global store</a> from which they can be
@@ -137,17 +138,11 @@ function register(t, p, pf, gopt, wopt)
       return
    end
 
-   -- Store default important values.
-   gopt = gopt or {}
-   if gopt.delay == nil then gopt.delay = 10 end
-
-   wopt = wopt or {}
-
    _gadgets_cache[t] = {
       prototype = p,
       provider = pf,
       instances = {},
-      defaults = { gadget = gopt, widget = wopt }
+      defaults = { gadget = gopt or {}, widget = wopt or {} }
    }
 end
 
@@ -246,17 +241,16 @@ function new(t, id, gopt, wopt)
    -- Create the widget.
    local proto = entry.prototype
    local g = proto:new{ id = id, provider = entry.provider(id) }
-   if g._create ~= nil then g:_create(wopt) end
 
    -- Configure the gadget.
    for k in pairs(gopt) do g[k] = gopt[k] end
-   for k in pairs(wopt) do g.widget[k] = wopt[k] end
+   if g.create ~= nil then
+      g:create(wopt)
+      for k in pairs(wopt) do g.widget[k] = wopt[k] end
+   end
 
    -- Start monitoring.
    g:register(gopt.delay)
-
-   -- Initial display.
-   g:update()
 
    return add(t, g)
 end
@@ -265,9 +259,7 @@ end
 --- The Gadget prototype.
 --
 -- <p>This is the root prototype of all gadgets. It provides common
--- methods for events and refresh handling. The only property, other
--- than <code>type</code> and <code>id</code>, handled by this object
--- is <code>delay</code>, the refresh rate of the gadget.</p>
+-- methods for events and refresh handling.</p>
 --
 -- @class table
 -- @name Gadget
@@ -299,16 +291,10 @@ end
 --
 -- @param  delay the delay between gadget updates in seconds.
 function Gadget:register(delay)
-   delay = delay or 10
-
    -- Subscribe this gadget to the provider.
    if self.provider ~= nil then
       self.provider:subscribe(self, delay)
    end
-
-   t = capi.timer{ timeout = delay }
-   t:add_signal('timeout', function() self:update() end, true)
-   t:start()
 end
 
 --- Register an event to the gadget.
@@ -355,14 +341,12 @@ end
 -- it calls its own redraw function, if defined.</p>
 function Gadget:update()
    if self.provider ~= nil then
-      if self.provider:refresh(self) then
-         for t, a in pairs(self.events) do
-            if t:test(self.provider.data) then
-               a(self, t)
-            end
+      for c, a in pairs(self.events) do
+         if c:test(self.provider.data) then
+            a(self, t)
          end
-         if self.redraw then self:redraw() end
       end
+      if self.redraw then self:redraw() end
    end
 end
 
@@ -380,7 +364,7 @@ end
 TextGadget = Gadget:new{}
 
 -- Create the wrapped gadget.
-function TextGadget:_create(wopt)
+function TextGadget:create(wopt)
    self.widget = capi.widget(
       awful.util.table.join(wopt, { type = 'textbox', name = self.id }))
 end
@@ -400,45 +384,10 @@ function TextGadget:redraw()
    if self.pattern ~= nil then
       self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
    end
-   if self.tooltip then
+   if self.tooltip ~= nil then
       self.tooltip.widget:set_text(
          flaw.helper.strings.format(self.tooltip.pattern, data_set))
    end
-end
-
-
---- The complex pattern boxes wrapper gadget.
---
--- <p><b>TODO</b></p>
---
--- <p>This specialised gadget relies on a complex pattern property which is
--- used to format the text output.</p>
---
--- @class table
--- @name PatternGadget
-PatternGadget = Gadget:new{}
-
---- Specialised callback for text gadget update.
---
--- <p>This implementation support two data models. First, it can apply
--- the gadget pattern directly on the provider data table. But if the
--- gadget identifier is a key of the provider data, then the gadget
--- pattern is applied using the content of this entry only in the
--- provider data set.</p>
-function PatternGadget:redraw()
-   local data_set = {}
-   if self.provider ~= nil and self.provider.data ~= nil then
-      data_set = self.provider.data[self.id] or self.provider.data
-   end
-   if self.pattern ~= nil then
-      self.widget.text = flaw.helper.strings.format(self.pattern, data_set)
-   end
-end
-
--- Create the wrapped gadget.
-function PatternGadget:_create(wopt)
-   self.widget = capi.widget(
-      awful.util.table.join(wopt, { type = 'textbox', name = self.id }))
 end
 
 
@@ -472,8 +421,46 @@ end
 -- In this case, the raw widget is still stored in
 -- <code>widget</code>, but the <code>awful.widget.graph</code> is
 -- stored in the <code>hull</code> one.
-function GraphGadget:_create(wopt)
+function GraphGadget:create(wopt)
    self.hull = awful.widget.graph(
+      awful.util.table.join(wopt, {name = self.id}))
+   self.widget = self.hull.widget
+end
+
+
+--- The progress bar wrapper gadget.
+--
+-- The progress bar represents a numeric value using a horizontal or
+-- vertical gauge. The gadget <code>value</code> field is the name of
+-- the provider property to be represented.
+--
+-- @class table
+-- @name ProgressGadget
+ProgressGadget = Gadget:new{}
+
+--- Specialised callback for progress gadget update.
+--
+-- <p>This implementation supports two data models. First, it can
+-- search the gadget <code>value</code> field directly in the provider
+-- data table. But if the gadget identifier is a key of the provider
+-- data table, then the gadget <code>value</code> field is searched in
+-- the provider's <code>data[id]</code> table.</p>
+function ProgressGadget:redraw()
+   if self.provider ~= nil and self.provider.data ~= nil then
+      local data_set = self.provider.data[self.id] or self.provider.data
+      self.hull:set_value(tonumber(data_set[self.value]) / 100)
+   end
+end
+
+-- Create the wrapped gadget.
+--
+-- In this case, the raw widget is still stored in
+-- <code>widget</code>, but the <code>awful.widget.progressbar</code>
+-- is stored in the <code>hull</code> one. To configure the
+-- <code>hull</code>, see
+-- <http://awesome.naquadah.org/doc/api/modules/awful.widget.progressbar.html>.
+function ProgressGadget:create(wopt)
+   self.hull = awful.widget.progressbar(
       awful.util.table.join(wopt, {name = self.id}))
    self.widget = self.hull.widget
 end
@@ -490,7 +477,7 @@ end
 IconGadget = Gadget:new{ type = 'unknown.imagebox' }
 
 -- TODO
-function IconGadget:_create()
+function IconGadget:create()
    self.widget = capi.widget({ type = 'imagebox', name = self.id })
 end
 
