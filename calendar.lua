@@ -160,8 +160,8 @@ function CalendarGadget:create(wopt)
       awful.util.table.join(
          awful.button({}, 4, function() self.provider:set_month(-1) end),
          awful.button({}, 5, function() self.provider:set_month(1) end),
-         awful.button({ 'Shift' }, 4, function() self.provider:set_month(-1) end),
-         awful.button({ 'Shift' }, 5, function() self.provider:set_month(1) end)))
+         awful.button({ 'Shift' }, 4, function() self.provider:set_month(-12) end),
+         awful.button({ 'Shift' }, 5, function() self.provider:set_month(12) end)))
 end
 
 function CalendarGadget:redraw()

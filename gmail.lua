@@ -19,6 +19,11 @@
 local io = io
 local os = os
 
+local awful = {
+   button = require("awful.button"),
+   util = require("awful.util"),
+}
+
 local flaw = {
    helper = require('flaw.helper'),
    gadget = require('flaw.gadget'),
@@ -89,6 +94,8 @@ function GMailProvider:do_refresh()
    self.data.count = '0'
    self.data.mails = ''
 
+   -- TODO: test if f is empty because connection timed out.
+
    for line in f:lines() do
       if depth == states.AUTHOR then
          if line:match("</author>") ~= nil then
@@ -142,7 +149,18 @@ function GMailProviderFactory()
    return p
 end
 
+-- A Text gadget prototype for GMail status display.
+GMailTextGadget = flaw.gadget.TextGadget:new{}
+
+-- Create the wrapped gadget.
+function GMailTextGadget:create(wopt)
+   flaw.gadget.TextGadget.create(self, wopt)
+   self.widget:buttons(
+      awful.util.table.join(
+         awful.button({ }, 1, function() self.provider:refresh(self) end)))
+end
+
 -- A Text gadget prototype for GMail summary display.
 flaw.gadget.register(
-   'GMailTextbox', flaw.gadget.TextGadget:new{}, GMailProviderFactory,
+   'GMailTextbox', GMailTextGadget, GMailProviderFactory,
    { delay = 300, pattern = '$count messages' })

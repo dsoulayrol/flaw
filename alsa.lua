@@ -125,9 +125,9 @@ function ALSAProvider:do_refresh()
       if status ~=nil then
          self.data.s_volume = flaw.helper.strings.pad_left(
             string.match(status, '(%d?%d?%d)%%'), 3)
-         self.data.volume = tonumber(self.data.s_volume)
+         self.data.volume = tonumber(self.data.s_volume) or 0
          status = string.match(status, '%[(o[^%]]*)%]')
-         if string.find(status, 'off', 1, true) then
+         if status == nil or string.find(status, 'off', 1, true) then
             self.data.s_volume = '---'
          end
       end
