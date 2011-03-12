@@ -90,41 +90,52 @@ function GMailProvider:do_refresh()
    local pattern = ''
    local feed = 'https://mail.google.com/mail/feed/atom/unread'
    local f = io.popen("curl --connect-timeout 1 -m 3 -fsn " .. feed)
-   self.data.timestamp = os.date('%H:%M')
-   self.data.count = '0'
-   self.data.mails = ''
 
-   -- TODO: test if f is empty because connection timed out.
+   if 0 ~= f:seek("end") then
 
-   for line in f:lines() do
-      if depth == states.AUTHOR then
-         if line:match("</author>") ~= nil then
-            depth = states.ENTRY
-         else
-            pattern = line:match("<name>(.*)</name>")
-            if pattern ~= nil then
-               current = current .. ' (' .. flaw.helper.strings.escape(pattern) .. ')'
+      self.data.timestamp = os.date('%H:%M')
+      self.data.count = '0'
+      self.data.mails = ''
+
+      f:seek("set")
+      for line in f:lines() do
+         if depth == states.AUTHOR then
+            if line:match("</author>") ~= nil then
+               depth = states.ENTRY
+            else
+               pattern = line:match("<name>(.*)</name>")
+               if pattern ~= nil then
+                  current = current .. ' (' .. flaw.helper.strings.escape(pattern) .. ')'
+               end
             end
-         end
-      elseif depth == states.ENTRY then
-         if line:match("</entry>") ~= nil then
-            self.data.mails = self.data.mails .. current .. "\n"
-            depth = states.ROOT
-         elseif line:match("<author>") ~= nil then
-            depth = states.AUTHOR
-         else
-            pattern = line:match("<title>(.*)</title>")
-            if pattern ~= nil then
-               current = flaw.helper.strings.crop(
-                  flaw.helper.strings.escape(pattern), 32)
+         elseif depth == states.ENTRY then
+            if line:match("</entry>") ~= nil then
+               self.data.mails = self.data.mails .. current .. "\n"
+               depth = states.ROOT
+            elseif line:match("<author>") ~= nil then
+               depth = states.AUTHOR
+            else
+               pattern = line:match("<title>(.*)</title>")
+               if pattern ~= nil then
+                  current = flaw.helper.strings.crop(
+                     flaw.helper.strings.escape(pattern), 42)
+
+                  -- Remove HTML entities that would be now truncated.
+                  local i = current:find("&")
+                  if i ~= nil and current:find(";") == nil then
+                     current = current:sub(0, i - 1) .. "..."
+                  end
+
+                  current = "<i>" .. current .. "</i>"
+               end
             end
-         end
-      elseif depth == states.ROOT then
-         if line:match("<entry>") ~= nil then
-            depth = states.ENTRY
-         else
-            self.data.count =
-               line:match("<fullcount>([%d]+)</fullcount>") or self.data.count
+         elseif depth == states.ROOT then
+            if line:match("<entry>") ~= nil then
+               depth = states.ENTRY
+            else
+               self.data.count =
+                  line:match("<fullcount>([%d]+)</fullcount>") or self.data.count
+            end
          end
       end
    end
