@@ -168,7 +168,7 @@ end
 --         provider should gather information
 -- @return a brand new ALSA provider, or an existing one if the
 --         given ID was already used to create one.
-function ALSAProviderFactory(id)
+function provider_factory(id)
    local p = flaw.provider.get(_NAME, id)
    -- Create the provider if necessary.
    if p == nil then
@@ -191,16 +191,15 @@ function ALSATextGadget:create(wopt)
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
 
-flaw.gadget.register(
-   'AlsaTextbox', ALSATextGadget, ALSAProviderFactory,
-   { delay = 1, pattern = '$s_volume%' })
+flaw.gadget.register.text(
+   _M, { delay = 1, pattern = '$s_volume%' }, ALSATextGadget)
 
 -- A progress bar gadget prototype for ALSA status display.
-ALSAProgressGadget = flaw.gadget.ProgressGadget:new{}
+ALSABarGadget = flaw.gadget.BarGadget:new{}
 
 -- Create the wrapped gadget.
-function ALSAProgressGadget:create(wopt)
-   flaw.gadget.ProgressGadget.create(self, wopt)
+function ALSABarGadget:create(wopt)
+   flaw.gadget.BarGadget.create(self, wopt)
    self.widget:buttons(
       awful.util.table.join(
          awful.button({ }, 4, function() self.provider:raise() end),
@@ -208,9 +207,8 @@ function ALSAProgressGadget:create(wopt)
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
 
-flaw.gadget.register(
-   'AlsaProgress', ALSAProgressGadget, ALSAProviderFactory,
-   { delay = 1, value = 'volume' })
+flaw.gadget.register.bar(
+   _M, { delay = 1, value = 'volume' }, ALSABarGadget)
 
 -- An icon gadget prototype for ALSA status display.
 ALSAIconGadget = flaw.gadget.IconGadget:new{}
@@ -225,5 +223,4 @@ function ALSAIconGadget:create(wopt)
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
 
-flaw.gadget.register(
-   'AlsaIcon', ALSAIconGadget, ALSAProviderFactory, { delay = 1 })
+flaw.gadget.register.icon(_M, { delay = 1 }, ALSAIconGadget)

@@ -17,15 +17,15 @@ beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 local gadgets = {}
 
 -- Calendar
-gadgets.calendar = flaw.gadget.CalendarTextbox(
+gadgets.calendar = flaw.gadget.text.calendar(
    '', { clock_format = ' | %a %d %B - <span color="' .. beautiful.fg_focus .. '">%H:%M</span>' })
 
 -- Client title
-gadgets.title = flaw.gadget.TitleTextbox(
+gadgets.title = flaw.gadget.text.title(
    '', { pattern = ' | <b><small>$title</small></b>' })
 
 -- GMail
-gadgets.gmail = flaw.gadget.GMailTextbox(
+gadgets.gmail = flaw.gadget.text.gmail(
    '', { pattern = ' | GMail: <span color="' .. beautiful.fg_focus .. '">$count</span> ' })
 gadgets.gmail:set_tooltip('Unread messages at $timestamp:\n$mails')
 
@@ -33,8 +33,8 @@ gadgets.gmail:set_tooltip('Unread messages at $timestamp:\n$mails')
 -- gadgets.alsa_icon = flaw.gadget.AlsaIcon(
 --    'alsa', {}, { image = image(beautiful.icon_cpu) })
 
-gadgets.alsa = flaw.gadget.AlsaTextbox('0', { pattern = ' | Vol.:$s_volume% ' })
-gadgets.alsa_bar = flaw.gadget.AlsaProgress('0')
+gadgets.alsa = flaw.gadget.text.alsa('0', { pattern = ' | Vol.:$s_volume% ' })
+gadgets.alsa_bar = flaw.gadget.bar.alsa('0')
 gadgets.alsa_bar.hull:set_vertical(true)
 gadgets.alsa_bar.hull:set_height(18)
 gadgets.alsa_bar.hull:set_width(12)
@@ -48,7 +48,7 @@ gadgets.alsa_bar.hull:set_gradient_colors(
 -- gadgets.cpu_icon = flaw.gadget.CPUIcon(
 --    'cpu', {}, { image = image(beautiful.icon_cpu) })
 
-gadgets.cpu_graph = flaw.gadget.CPUGraph(
+gadgets.cpu_graph = flaw.gadget.graph.cpu(
    'cpu', {}, { width = 60, height = 18 })
 gadgets.cpu_graph.hull:set_color(beautiful.fg_normal)
 gadgets.cpu_graph.hull:set_border_color(beautiful.fg_normal)
@@ -58,7 +58,7 @@ gadgets.cpu_graph.hull:set_background_color(beautiful.bg_normal)
 -- gadgets.net_icon = flaw.gadget.NetIcon(
 --    'eth0', {}, { image = image(beautiful.icon_net) })
 
-gadgets.net_graph = flaw.gadget.NetGraph(
+gadgets.net_graph = flaw.gadget.graph.network(
    'eth0', {}, { width = 60, height = 18 })
 gadgets.net_graph.hull:set_color(beautiful.fg_normal)
 gadgets.net_graph.hull:set_border_color(beautiful.fg_normal)
@@ -68,7 +68,7 @@ gadgets.net_graph.hull:set_background_color(beautiful.bg_normal)
 
 -- Create battery monitor
 if flaw.battery ~= nil then
-   gadgets.battery_icon = flaw.gadget.BatteryIcon(
+   gadgets.battery_icon = flaw.gadget.icon.battery(
       'BAT0',
       {
          my_icons = {
@@ -113,7 +113,7 @@ if flaw.battery ~= nil then
             bg = beautiful.bg_focus} end
    )
 
-   gadgets.battery_box = flaw.gadget.BatteryTextbox(
+   gadgets.battery_box = flaw.gadget.text.battery(
       'BAT0',
       { pattern = '<span color="#99aa99">$load</span>% $time' } )
    gadgets.battery_box:add_event(

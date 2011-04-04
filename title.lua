@@ -66,7 +66,7 @@ end
 --- A factory for client providers.
 --
 -- @return a brand new client provider.
-function ClientProviderFactory()
+function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
    if p == nil then
@@ -90,6 +90,4 @@ end
 
 
 -- A Text gadget prototype for clients title display.
-flaw.gadget.register(
-   'TitleTextbox', flaw.gadget.TextGadget:new{}, ClientProviderFactory,
-   { pattern = '$title' })
+flaw.gadget.register.text(_M, { pattern = '$title' })

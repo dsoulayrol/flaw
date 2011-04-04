@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009, 2010 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009, 2010, 2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ local flaw = {
 -- for all the other ones. They are <a
 -- href='#TextGadget'><code>TextGadget</code></a>, <a
 -- href='#GraphGadget'><code>GraphGadget</code></a>, <a
--- href='#ProgressGadget'><code>ProgressGadget</code></a> and <a
+-- href='#BarGadget'><code>BarGadget</code></a> and <a
 -- href='#IconGadget'><code>IconGadget</code></a> which embed a
 -- textbox, a graph, a progress bar and an imagebox respectively. They
 -- provide the raw gadgets mechanisms adapted to the type of widget
@@ -78,6 +78,18 @@ local flaw = {
 -- @copyright 2009, 2010 David Soulayrol
 module('flaw.gadget')
 
+
+--- Types store.
+--
+-- <p>This table indexes the available gadget types and their default
+-- implementation.</p>
+--
+-- <p>This table is private to the <code>gadget</code> module. It is
+-- mainly used as a reference for registering gadge prototypes.</p>
+--
+-- @class table
+-- @name _gadgets_types
+local _gadgets_types = {}
 
 --- Global gadgets store.
 --
@@ -127,20 +139,29 @@ local _gadgets_cache = {}
 -- existed.</p>
 --
 -- @param  t the type of prototype to register.
+-- @param  n the name of prototype to register.
 -- @param  p the prototype to register.
 -- @param  pf the provider factory to use when creating a new gadget
 --         using this new prototype.
 -- @param  gopt the default prototype options.
 -- @param  wopt the default options for the wrapped widget.
-function register(t, p, pf, gopt, wopt)
-   if p == nil or t == nil then
-      flaw.helper.debug.error('flaw.gadget.record: invalid class.')
+function register_prototype(t, n, p, pf, gopt, wopt)
+   if t == nil or n == nil or p == nil or pf == nil then
+      flaw.helper.debug.error('flaw.gadget.register_prototype: invalid arguments.')
       return
    end
 
-   _gadgets_cache[t] = {
+   if _gadgets_cache[t] == nil then
+      flaw.helper.debug.error('flaw.gadget.register_prototype: invalid type: ' .. t)
+      return
+   end
+
+   -- Keep only the latest part of a dotted notation in name.
+   n = n:gsub('^%w*%.', '')
+
+   _gadgets_cache[t][n] = {
       prototype = p,
-      provider = pf,
+      provider_factory = pf,
       instances = {},
       defaults = { gadget = gopt or {}, widget = wopt or {} }
    }
@@ -160,14 +181,14 @@ end
 -- @param  t the type of gadget to store.
 -- @param  g the gadget to store.
 -- @return The gadget stored, or nil if the given gadget could not be stored.
-function add(t, g)
-   if g == nil or t == nil or g.id == nil then
+function add(t, n, g)
+   if t == nil or n == nil or g == nil or g.id == nil then
       flaw.helper.debug.error('flaw.gadget.add: invalid gadget.')
    else
-      if _gadgets_cache[t] == nil then
+      if _gadgets_cache[t] == nil or _gadgets_cache[t][n] == nil then
          flaw.helper.debug.error('flaw.gadget.add: unknown gadget class: ' .. g.type)
       end
-      _gadgets_cache[t].instances[g.id] = g
+      _gadgets_cache[t][n].instances[g.id] = g
       return g
    end
    return nil
@@ -184,9 +205,10 @@ end
 -- @param  id the uniquer identifier of the gadget to retrieve.
 -- @return The matching gadget instance, or nil if information was
 --         incomplete or if there is no such gadget.
-function get(t, id)
-   if t ~= nil and id ~= nil then
-      return _gadgets_cache[t] ~= nil and _gadgets_cache[t].instances[id]
+function get(t, n, id)
+   if t ~= nil and n ~= nil and id ~= nil then
+      return _gadgets_cache[t] and _gadgets_cache[t][n] ~= nil
+         and _gadgets_cache[t].instances[id]
    end
    flaw.helper.debug.error('flaw.gadget.get: invalid information.')
    return nil
@@ -216,31 +238,30 @@ end
 --         created. Note that the returned widget is present in the
 --         gadget store and can be retrieved with the <a
 --         href='#get'><code>get</code></a> function from now on.
-function new(t, id, gopt, wopt)
-   if t == nil or id == nil then
+function new(t, n, id, gopt, wopt)
+   if t == nil or n == nil or id == nil then
       flaw.helper.debug.error('flaw.gadget.new: invalid information.')
       return nil
    end
 
-   local entry = _gadgets_cache[t]
-   if entry == nil then
-      flaw.helper.debug.error('flaw.gadget.new: unknown gadget class: ' .. t)
+   local e = _gadgets_cache[t][n]
+   if e == nil then
+      flaw.helper.debug.error('flaw.gadget.new: unknown gadget class: ' .. t .. '.' .. n)
       return nil
    end
 
    -- Load default parameters.
    gopt = gopt or {}
    wopt = wopt or {}
-   for k in pairs(entry.defaults.gadget) do
-      gopt[k] = gopt[k] or entry.defaults.gadget[k]
+   for k in pairs(e.defaults.gadget) do
+      gopt[k] = gopt[k] or e.defaults.gadget[k]
    end
-   for k in pairs(entry.defaults.widget) do
-      wopt[k] = wopt[k] or entry.defaults.widget[k]
+   for k in pairs(e.defaults.widget) do
+      wopt[k] = wopt[k] or e.defaults.widget[k]
    end
 
    -- Create the widget.
-   local proto = entry.prototype
-   local g = proto:new{ id = id, provider = entry.provider(id) }
+   local g = e.prototype:new{ id = id, provider = e.provider_factory(id) }
 
    -- Configure the gadget.
    for k in pairs(gopt) do g[k] = gopt[k] end
@@ -252,7 +273,7 @@ function new(t, id, gopt, wopt)
    -- Start monitoring.
    g:register(gopt.delay)
 
-   return add(t, g)
+   return add(t, n, g)
 end
 
 
@@ -390,6 +411,8 @@ function TextGadget:redraw()
    end
 end
 
+_gadgets_types.text = TextGadget
+_gadgets_cache.text = {}
 
 --- The graphs wrapper gadget.
 --
@@ -427,6 +450,8 @@ function GraphGadget:create(wopt)
    self.widget = self.hull.widget
 end
 
+_gadgets_types.graph = GraphGadget
+_gadgets_cache.graph = {}
 
 --- The progress bar wrapper gadget.
 --
@@ -435,8 +460,8 @@ end
 -- the provider property to be represented.
 --
 -- @class table
--- @name ProgressGadget
-ProgressGadget = Gadget:new{}
+-- @name BarGadget
+BarGadget = Gadget:new{}
 
 --- Specialised callback for progress gadget update.
 --
@@ -445,7 +470,7 @@ ProgressGadget = Gadget:new{}
 -- data table. But if the gadget identifier is a key of the provider
 -- data table, then the gadget <code>value</code> field is searched in
 -- the provider's <code>data[id]</code> table.</p>
-function ProgressGadget:redraw()
+function BarGadget:redraw()
    if self.provider ~= nil and self.provider.data ~= nil then
       local data_set = self.provider.data[self.id] or self.provider.data
       self.hull:set_value(tonumber(data_set[self.value]) / 100)
@@ -459,12 +484,14 @@ end
 -- is stored in the <code>hull</code> one. To configure the
 -- <code>hull</code>, see
 -- <http://awesome.naquadah.org/doc/api/modules/awful.widget.progressbar.html>.
-function ProgressGadget:create(wopt)
+function BarGadget:create(wopt)
    self.hull = awful.widget.progressbar(
       awful.util.table.join(wopt, {name = self.id}))
    self.widget = self.hull.widget
 end
 
+_gadgets_types.bar = BarGadget
+_gadgets_cache.bar = {}
 
 --- The image boxes wrapper gadget.
 --
@@ -476,16 +503,40 @@ end
 -- @name IconGadget
 IconGadget = Gadget:new{ type = 'unknown.imagebox' }
 
+_gadgets_types.icon = IconGadget
+_gadgets_cache.icon = {}
+
+
 -- TODO
 function IconGadget:create()
    self.widget = capi.widget({ type = 'imagebox', name = self.id })
 end
 
+-- Below are nifty shortcuts to register or create new gadgets.
+register = {}
+setmetatable(register, {
+                __index = function(_, t)
+                             return function(m, gopt, wopt, p)
+                                       if m == nil or m._NAME == nil or m.provider_factory == nil then
+                                          flaw.helper.debug.error(
+                                             'flaw.gadget.register.' .. t .. ': invalid module.')
+                                          return
+                                       end
+
+                                       register_prototype(t, m._NAME, p or _gadgets_types[t],
+                                                          m.provider_factory, gopt, wopt)
+                                    end
+                          end })
 
 
-setmetatable(
-   _M, {
-      __index = function(_, t) return function (id, gopt, wopt)
-                                         return new(t, id, gopt, wopt)
-                                      end
-                end })
+setmetatable(_M, {
+                __index = function(_, t)
+                             _t = {}
+                             _mt = { __index = function(_, n)
+                                                  return function(id, gopt, wopt)
+                                                            return new(t, n, id, gopt, wopt)
+                                                         end
+                                               end }
+                             setmetatable(_t, _mt)
+                             return _t
+                          end })

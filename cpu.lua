@@ -92,7 +92,7 @@ end
 -- A factory for cpu providers. Only one provider is built for a CPU
 -- ID. Created providers are stored in the provider cache. See
 -- provider.add ant provider.get.
-function CPUProviderFactory()
+function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
    if p == nil then
@@ -103,15 +103,10 @@ function CPUProviderFactory()
 end
 
 -- A Text gadget for cpu status display.
-flaw.gadget.register(
-   'CPUTextbox', flaw.gadget.TextGadget:new{}, CPUProviderFactory,
-   { delay = 1, pattern = '$load_user/$load_sum' })
+flaw.gadget.register.text(_M, { delay = 1, pattern = '$load_user/$load_sum' })
 
 -- A graph gadget for cpu load display.
-flaw.gadget.register(
-   'CPUGraph', flaw.gadget.GraphGadget:new{}, CPUProviderFactory,
-   { delay = 1, values = { 'load_sum' } })
+flaw.gadget.register.graph(_M, { delay = 1, values = { 'load_sum' } })
 
 -- An icon gadget for cpu status display.
-flaw.gadget.register(
-   'CPUIcon', flaw.gadget.IconGadget:new{}, CPUProviderFactory)
+flaw.gadget.register.icon(_M)

@@ -149,7 +149,7 @@ end
 --
 -- @return a brand new gmail provider, or an existing one if the
 --         given slot was already used to create one.
-function GMailProviderFactory()
+function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
    if p == nil then
@@ -172,6 +172,5 @@ function GMailTextGadget:create(wopt)
 end
 
 -- A Text gadget prototype for GMail summary display.
-flaw.gadget.register(
-   'GMailTextbox', GMailTextGadget, GMailProviderFactory,
-   { delay = 300, pattern = '$count messages' })
+flaw.gadget.register.text(
+   _M, { delay = 300, pattern = '$count messages' }, {}, GMailTextGadget)

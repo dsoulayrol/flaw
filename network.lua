@@ -103,7 +103,7 @@ end
 -- stored in the provider cache.</p>
 --
 -- @return a brand new network provider, or the existing one if any.
-function NetworkProviderFactory()
+function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
    if p == nil then
@@ -114,15 +114,10 @@ function NetworkProviderFactory()
 end
 
 -- A Text gadget for network status display.
-flaw.gadget.register(
-   'NetTextbox', flaw.gadget.TextGadget:new{}, NetworkProviderFactory,
-   { delay = 1, pattern = 'in:$net_in out:$net_out' })
+flaw.gadget.register.text(_M, { delay = 1, pattern = 'in:$net_in out:$net_out' })
 
 -- A graph gadget for network load display.
-flaw.gadget.register(
-   'NetGraph', flaw.gadget.GraphGadget:new{}, NetworkProviderFactory,
-   { delay = 1, values = { 'percents_in' } })
+flaw.gadget.register.graph(_M, { delay = 1, values = { 'percents_in' } })
 
 -- An icon gadget for network status display.
-flaw.gadget.register(
-   'NetIcon', flaw.gadget.IconGadget:new{}, NetworkProviderFactory)
+flaw.gadget.register.icon(_M)

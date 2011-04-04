@@ -225,7 +225,7 @@ end
 --         provider should gather information
 -- @return a brand new battery provider, or an existing one if the
 --         given slot was already used to create one.
-function BatteryProviderFactory(slot)
+function provider_factory(slot)
    local p = flaw.provider.get(_NAME, slot)
    -- Create the provider if necessary.
    if p == nil then
@@ -242,11 +242,7 @@ function BatteryProviderFactory(slot)
 end
 
 -- A Text gadget prototype for battery status display.
-flaw.gadget.register(
-   'BatteryTextbox', flaw.gadget.TextGadget:new{}, BatteryProviderFactory,
-   { pattern = '$load% $status' })
+flaw.gadget.register.text(_M, { pattern = '$load% $status' })
 
 -- An icon gadget prototype for battery status display.
-flaw.gadget.register(
-   'BatteryIcon', flaw.gadget.IconGadget:new{}, BatteryProviderFactory,
-   { status = STATUS_UNKNOWN })
+flaw.gadget.register.icon(_M, { status = STATUS_UNKNOWN })

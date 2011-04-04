@@ -122,7 +122,7 @@ end
 --- A factory for calendar providers.
 --
 -- @return a brand new calendar provider.
-function CalendarProviderFactory()
+function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
    if p == nil then
@@ -188,4 +188,4 @@ function CalendarGadget:collapse()
    self.wibox.visible = false
 end
 
-flaw.gadget.register('CalendarTextbox', CalendarGadget, CalendarProviderFactory)
+flaw.gadget.register.text(_M, {}, {}, CalendarGadget)

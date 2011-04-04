@@ -134,7 +134,7 @@ end
 -- global provider cache.</p>
 --
 -- @return a brand new memory provider, or the existing one if any.
-function MemoryProviderFactory()
+function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
    if p == nil then
@@ -147,11 +147,7 @@ end
 
 
 -- A Text gadget for memory status display.
-flaw.gadget.register(
-   'MemTextbox', flaw.gadget.TextGadget:new{}, MemoryProviderFactory,
-   { pattern = '$ratio%' })
+flaw.gadget.register.text(_M, { pattern = '$ratio%' })
 
 -- A graph gadget for memory status history.
-flaw.gadget.register(
-   'MemGraph', flaw.gadget.GraphGadget:new{}, MemoryProviderFactory,
-   { delay = 1, values = { 'ratio' } })
+flaw.gadget.register.graph(_M, { delay = 1, values = { 'ratio' } })
