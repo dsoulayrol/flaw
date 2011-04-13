@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2010 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -42,50 +42,70 @@ local flaw = {
 -- <p>This module contains a provider for ALSA information and two
 -- gadgets: a text gadget and an icon gadget.</p>
 --
--- <h2>Icon Gadget</h2>
+-- <h2>Gadgets</h2>
 --
--- <p>Assuming you have created a beautiful property to store your
--- ALSA controller icon path, simply add the following line to your
--- configuration to create an ALSA icon gadget.</p>
+-- <p>The ID of the gadgets designates the identifier of the audio
+-- card to control. ALSA gadgets provide no custom parameters. See the
+-- <a href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
+--
+-- <p>All ALSA gadgets specialize their standard counterpart to allow
+-- you to control the volume from the Master channel of the monitored
+-- card. The buttons 4 and 5 of the mouse - which should normally be
+-- bound to the wheel up and down movements - allow you to change the
+-- sound level, whereas the left click mutes the channel.</p>
+--
+-- <h3>Icon Gadget</h3>
+--
+-- <p>The ALSA icon gadget can be instantiated by indexing the gadget
+-- module with <code>icon.alsa</code>. Here is an exemple which
+-- assumes the card identifier is 0, and the path of the icon to
+-- display is stored in a <b>beautiful</b> property.</p>
 --
 -- <div class='example'>
--- g = flaw.gadget.AlsaIcon(<br/>
+-- g = flaw.gadget.icon.alsa(<br/>
 -- &nbsp;&nbsp;&nbsp;'0', {}, { image = image(beautiful.sound_icon) })<br/>
 -- </div>
 --
--- <p>The <code>0</code> parameter is the ID of the card the icon will
--- monitor.</p>
+-- <h3>Text Gadget</h3>
 --
--- <p>The ALSA icon gadget specializes the standard icon gadget to
--- allow you to control the volume from the Master channel of the
--- monitored card. The buttons 4 and 5 of the mouse - which should
--- normally be bound to the wheel up and down movements - allow you
--- to change the volume, whereas the left click mutes the channel.</p>
---
--- <h2>Text Gadget</h2>
---
--- <p>The ALSA text gadget allows you to configure the display of the
--- raw provider data. By default, the gadget pattern is
--- <code>'$volume%'</code>.</p>
---
--- <p>To create such a gadget, add the following line to your
--- configuration.</p>
+-- <p>The ALSA text gadget can be instantiated by indexing the gadget
+-- module with <code>text.alsa</code>. By default, the gadget pattern
+-- is <code>'$volume%'</code>. See the provider's documentation below
+-- to learn about the available variables.</p>
 --
 -- <div class='example'>
--- g = flaw.gadget.AlsaTextbox('0')
+-- g = flaw.gadget.text.alsa('0')
 -- </div>
 --
--- <p>If you want to provide your own pattern, add the pattern gadget
--- option:</p>
+-- <h2>Provider</h2>
 --
--- <div class='example'>
--- g = flaw.gadget.AlsaTextbox(<br/>
--- &nbsp;&nbsp;&nbsp;'0', { pattern = '&lt;span color="#ffffff"&gt;
--- $volume&lt;/span&gt;%($mute)' })
--- </div>
+-- <p>The ALSA provider relies on the <code>amixer</code> program to
+-- get the master channel status as well as to modify to sound
+-- level</p>
+--
+-- <p>The ALSA provider data is composed of the following fields.</p>
+--
+-- <ul>
+--
+-- <li><code>volume</code>
+--
+-- <p>The sound level in percent on the Master channel on the monitored card,
+-- as a number.</p></li>
+--
+-- <li><code>s_volume</code>
+--
+-- <p>A string which represents the current sound level in percent of
+-- the Master channel on the monitored card, with a visual hint when
+-- it is muted. The string is 3 characters long, padded by the
+-- left.</p></li>
+--
+-- </ul>
+--
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2010, David Soulayrol
+-- @copyright 2010,2011 David Soulayrol
 module('flaw.alsa')
 
 
@@ -93,20 +113,7 @@ CHANNEL = 'Master'
 
 --- The ALSA provider prototype.
 --
--- <p>The ALSA provider type is set to alsa._NAME. Its data are read
--- using the amix tool</p>
---
--- <p>The ALSA provider data is composed of two fields.</p>
---
--- <ul>
--- <li><code>volume</code><br/>
--- The volume in percent on the Master channel on the monitored card,
--- as a number.</li>
--- <li><code>s_volume</code><br/>
--- A string which represents the current volume in percent of the
--- Master channel on the monitored card, with a visual hint when it is
--- muted. The string is 3 characters long, padded by the left.</li>
--- </ul>
+-- <p>The ALSA provider type is set to <code>alsa._NAME</code>.</p>
 --
 -- @class table
 -- @name ALSAProvider
@@ -135,7 +142,11 @@ function ALSAProvider:do_refresh()
    end
 end
 
---- Raise the volume on the Master channel from the monitored card.
+--- Raise the sound level on the Master channel from the monitored
+--- card.
+--
+-- @param offset the value to add to the current sound level. This
+--         value is one if the paramenter is <code>nil</code>.
 function ALSAProvider:raise(offset)
    awful.util.spawn('amixer -q -c ' .. self.id ..
                     ' sset ' .. CHANNEL .. ' ' .. (offset or 1) .. '+', false)
@@ -143,7 +154,12 @@ function ALSAProvider:raise(offset)
    self:refresh_gadgets(true)
 end
 
---- Lower the volume on the Master channel from the monitored card.
+--- Lower the sound level on the Master channel from the monitored
+--- card.
+--
+-- @param offset the value to remove from the current sound
+--         level. This value is one if the paramenter is
+--         <code>nil</code>.
 function ALSAProvider:lower(offset)
    awful.util.spawn('amixer -q -c ' .. self.id ..
                     ' sset ' .. CHANNEL .. ' ' .. (offset or 1) .. '-', false)

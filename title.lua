@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2010 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -33,22 +33,47 @@ local flaw = {
 --- Clients title display.
 --
 -- <p>This module contains a simple text gadget which displays the
--- title of the active client, and its provider.</p>
+-- title of the active client, and its provider. This is a convenient
+-- way to see the window title displayed, even if the window bar is
+-- not displayed.</p>
+--
+-- <h2>Gadget</h2>
+--
+-- <p>The title gadget can be instantiated by indexing the gadget
+-- module with <code>text.title</code>. The ID parameter has no
+-- meaning for the calendar gadget, and it takes no particular
+-- parameters. See the <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
 --
 -- <div class='example'>
--- g = flaw.gadget.TitleTextbox()<br/>
+-- g = flaw.gadget.text.title('')
 -- </div>
 --
+-- <h2>Provider</h2>
+--
+-- <p>The provider makes no hardware or software access whatsoever. It
+-- simply plugs its <code>update</code> method on the
+-- <code>focus</code>, <code>unfocus</code> and
+-- <code>property::name</code> signals. This also means the
+-- <code>delay</code> parameter has no meaning for it.</p>
+--
+--
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2010, David Soulayrol
+-- @copyright 2010,2011 David Soulayrol
 module('flaw.title')
 
 --- The client events provider prototype.
+--
+-- <p>The client title provider type is set to
+-- <code>title._NAME</code>.</p>
 --
 -- @class table
 -- @name ClientProvider
 ClientProvider = flaw.provider.Provider:new{ type = _NAME }
 
+--- Display the new client title.
 function ClientProvider:update(c)
    if c and c.name and capi.client.focus == c then
       self.data.title = awful.util.escape(c.name)
@@ -56,6 +81,7 @@ function ClientProvider:update(c)
    end
 end
 
+--- Erase the client title.
 function ClientProvider:reset(c)
    if c then
       self.data.title = ''

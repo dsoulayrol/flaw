@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009,2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -29,17 +29,106 @@ local flaw = {
 }
 
 
--- Cpu module implementation
+--- Cpu information.
 --
--- This module contains a provider for cpu information and two
--- gadgets: a text gadget and a graph gadget.
+-- <p>This module contains a provider for cpu information and three
+-- gadgets: a text gadget, an icon gadget and a graph gadget.</p>
+--
+-- <h2>Gadgets</h2>
+--
+-- <p>The ID of the gadgets designates the CPU slot to be monitored,
+-- in the <code>/proc/stat</code> file, as indicated in the provider's
+-- documentation below. CPU gadgets provide no custom parameters. See
+-- the <a href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
+--
+-- <h3>Icon Gadget</h3>
+--
+-- <p>The CPU icon gadget can be instantiated by indexing the gadget
+-- module with <code>icon.cpu</code>. Here is an exemple which assumes
+-- the CPU icon path is stored in a <b>beautiful</b> property.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.icon.cpu(<br/>
+-- &nbsp;&nbsp;&nbsp;'cpu', {}, { image = image(beautiful.cpu_icon) })<br/>
+-- </div>
+--
+-- <h3>Text Gadget</h3>
+--
+-- <p>The CPU text gadget can be instantiated by indexing the gadget
+-- module with <code>text.cpu</code>. By default, the gadget pattern
+-- is <code>$load_user/$load_sum</code>. See the provider's
+-- documentation below to learn about the available variables.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.text.cpu('cpu')
+-- </div>
+--
+-- <h3>Graph Gadget</h3>
+--
+-- <p>The CPU graph gadget can be instantiated by indexing the gadget
+-- module with <code>graph.cpu</code>. By default, the chart displayed
+-- by the gadget shows the evolution of <code>load_sum</code>. See the
+-- provider's documentation below to learn about the available
+-- variables.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.graph.cpu(<br/>
+-- &nbsp;&nbsp;&nbsp;'cpu', {}, { width = 60, height = 18 })
+-- </div>
+--
+-- <h2>Provider</h2>
+--
+-- <p>The cpu provider loads its information from
+-- <code>/proc/stat/</code> and considers the line beginning with
+-- <code>cpu</code>. On multi-core machines, multiple
+-- <code>cpuNN</code> lines follow the one which begins with only
+-- <code>cpu</code>. The complete file format is explained at <a
+-- href="http://www.linuxhowtos.org/System/procstat.htm">http://www.linuxhowtos.org/System/procstat.htm</a></p>
+--
+-- <p>The cpu provider computed data is composed of the following
+-- fields.</p>
+--
+-- <ul>
+--
+-- <li><code>load_user</code>
+--
+-- <p>The percentage of time the CPU has spent performing normal
+-- processing in user mode.</p></li>
+--
+-- <li><code>load_nice</code>
+--
+-- <p>The percentage of time the CPU has spent performing niced
+-- processing in user mode.</p></li>
+--
+-- <li><code>load_sum</code>
+--
+-- <p>The percentage of time the CPU has spent performing any task in
+-- any mode.</p></li>
+--
+-- </ul>
+--
+-- The provider data also stores the raw values read from the lines
+-- parsed in <code>/proc/stat</code>. This information can be found in
+-- <code>raw_sum</code>, <code>raw_user</code>, <code>raw_nice</code>,
+-- <code>raw_idle</code>, and is used to compute percentage values.
+--
+--
+-- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
+-- @copyright 2009,2010,2011 David Soulayrol
 module('flaw.cpu')
 
--- The cpu provider.
+--- The cpu provider prototype.
+--
+-- <p>The CPU provider type is set to
+-- <code>cpu._NAME</code>.</p>
+--
+-- @class table
+-- @name CPUProvider
 CPUProvider = flaw.provider.CyclicProvider:new{ type = _NAME, data = {} }
 
--- Callback for provider refresh.
--- See Provider:do_refresh.
+--- Callback for provider refresh.
 function CPUProvider:do_refresh()
    local file = io.open('/proc/stat')
    local line = ''
@@ -89,9 +178,13 @@ function CPUProvider:do_refresh()
    io.close(file);
 end
 
--- A factory for cpu providers. Only one provider is built for a CPU
--- ID. Created providers are stored in the provider cache. See
--- provider.add ant provider.get.
+--- A factory for CPU provider.
+--
+-- <p>Only one provider is built to store all the CPU information. Its
+-- data is a map indexed by CPU slot.</p>
+--
+-- @return a brand new CPU provider, or the existing one if found in
+--         the providers cache.
 function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.

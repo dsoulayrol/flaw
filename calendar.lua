@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2010 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -44,19 +44,48 @@ local flaw = {
 
 --- A Calendar.
 --
--- <p>This module contains a text gadget and a provider to display the
--- calendar. It was started thanks to the calendar module proposed at
--- http://awesome.naquadah.org/wiki/Calendar_widget</p>
+-- <p>This module contains a text gadget and a provider to display a
+-- calendar. It was written thanks to the original calendar module
+-- proposed at <a
+-- href="http://awesome.naquadah.org/wiki/Calendar_widget">http://awesome.naquadah.org/wiki/Calendar_widget</a>.</p>
+--
+-- <h2>Gadget</h2>
+--
+-- <p>The calendar gadget can be instantiated by indexing the gadget
+-- module with <code>text.calendar</code>. The ID parameter has no
+-- meaning for the calendar gadget, and it takes no particular
+-- parameters. See the <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
 --
 -- <div class='example'>
--- g = flaw.gadget.CalendarTextbox()<br/>
+-- g = flaw.gadget.text.calendar('')
 -- </div>
 --
+-- <p>When the mouse gets over the gadget, a floating
+-- <code>wibox</code> is displayed to present a month view. The
+-- buttons 4 and 5 of the mouse - which should normally be bound to
+-- the wheel up and down movements - allow you to change the displayed
+-- month. With the help of the <code>shift</code> key, the year is
+-- changed.</p>
+--
+-- <h2>Provider</h2>
+--
+-- <p>The provider makes no hardware or software access whatsoever. It
+-- simply builds a textual month view for the calendar gadget. This
+-- also means the <code>delay</code> parameter has no meaning for
+-- it.</p>
+--
+--
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2010, David Soulayrol
+-- @copyright 2010,2011, David Soulayrol
 module('flaw.calendar')
 
 --- The calendar provider prototype.
+--
+-- <p>The calendar provider type is set to
+-- <code>calendar._NAME</code>.</p>
 --
 -- @class table
 -- @name CalendarProvider
@@ -121,7 +150,10 @@ end
 
 --- A factory for calendar providers.
 --
--- @return a brand new calendar provider.
+-- <p>Only one provider is built.</p>
+--
+-- @return a brand new calendar provider, or the existing one if the
+--         found in the providers cache.
 function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.

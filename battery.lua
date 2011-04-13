@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009,2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -35,80 +35,79 @@ local flaw = {
 -- <p>This module contains a provider for battery information and two
 -- gadgets: a text gadget and an icon gadget.</p>
 --
--- <h2>Icon Gadget</h2>
+-- <h2>Gadgets</h2>
 --
--- <p>Assuming you have created a beautiful property to store your
--- battery icon path, simply add the following line to your
--- configuration to create a battery status icon gadget.</p>
+-- <p>The ID of the gadget designates the battery slot to be
+-- monitored. Battery gadgets provide no custom parameters. See the <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
 --
--- <div class='example'>
--- g = flaw.gadget.new('flaw.battery.imagebox', 'BAT0',<br/>
--- &nbsp;&nbsp;&nbsp;{}, { image = image(beautiful.battery_icon) })<br/>
--- </div>
+-- <h3>Icon Gadget</h3>
 --
--- <p>The battery status icon gadget specializes the standard icon
--- gadget to use the <i>battery</i> module provider and that's
--- all. The main interest of this comes with the use of events.  Let's
--- say you want to change the icon to visualize roughly the power left
--- on the battery. You can add an <a href='flaw.event.html'>event</a>
--- to the icon gadget to launch an action when the battery load
--- reaches a given value.</p>
+-- <p>The battery icon gadget can be instantiated by indexing the
+-- gadget module with <code>icon.battery</code>. Here is an exemple
+-- which assumes the battery icon path is stored in a <b>beautiful</b>
+-- property.</p>
 --
 -- <div class='example'>
--- g.add_event(<br/>
--- &nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;condition = function(d) return d.load &lt; 25 end },<br/>
--- &nbsp;&nbsp;&nbsp;function(g) g.widget.image =
--- image(beautiful.battery_low_icon) end)
+-- g = flaw.gadget.icon.battery(<br/>
+-- &nbsp;&nbsp;&nbsp;'BAT0', {}, { image = image(beautiful.battery_icon) })<br/>
 -- </div>
 --
--- <p>The condition you provide is called with the provider data as
--- argument. The action is called with the gadget as argument. Note
--- that the use of a <a
--- href='flaw.event.html#LatchTrigger'><code>LatchTrigger</code></a>
--- will make the event happen only at the moment the load gets under
--- 25 percents.</p>
+-- <h3>Text Gadget</h3>
 --
--- <p>Here is another example to be notified if the battery load gets
--- really low.</p>
+-- <p>The battery text gadget can be instantiated by indexing the
+-- gadget module with <code>text.battery</code>. By default, the
+-- gadget pattern is <code>'$load% $status'</code>. See the provider's
+-- documentation below to learn about the available variables.</p>
 --
 -- <div class='example'>
--- g.add_event(<br/>
--- &nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{
--- condition = function(d) return d.load &lt; 10 end },<br/>
--- &nbsp;&nbsp;&nbsp;function(g) naughty.notify{<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = "Battery Warning",<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text = "Battery low! " .. g.provider.data.load .. "% left!",<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = 5,<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position = "top_right",<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fg = beautiful.fg_focus,<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bg = beautiful.bg_focus} end)
+-- g = flaw.gadget.text.battery('BAT0')
 -- </div>
 --
--- <h2>Text Gadget</h2>
+-- <h2>Provider</h2>
 --
--- <p>The battery status text gadget allows you to configure the
--- display of the raw provider data. By default, the gadget pattern is
--- <code>'$load% $status'</code>.</p>
+-- <p>The battery provider loads its information from
+-- <code>/proc/acpi/battery/&lt;ID&gt;/</code> and
+-- <code>/sys/class/power_supply/&lt;ID&gt;/</code> if they exist.</p>
 --
--- <p>To create such a gadget, add the following line to your
--- configuration.</p>
+-- <p>The battery provider data is composed of the following fields.</p>
 --
--- <div class='example'>
--- g = flaw.gadget.new('flaw.battery.textbox', 'BAT0')
--- </div>
+-- <ul>
 --
--- <p>If you want to provide your own pattern, add the pattern gadget
--- option:</p>
+-- <li><code>load</code>
 --
--- <div class='example'>
--- g = flaw.gadget.new('flaw.battery.textbox', 'BAT0',<br/>
--- &nbsp;&nbsp;&nbsp;{ pattern = '&lt;span color="#ffffff"&gt;
--- $load&lt;/span&gt;%' })
--- </div>
+-- <p>The current battery load in percents.</p></li>
+--
+-- <li><code>st_symbol</code>
+--
+-- <p>The current power supply utilisation. It is set to the value of
+-- <code>battery.STATUS_PLUGGED</code> if AC adaptor is in use and
+-- there is no activity on the battery,
+-- <code>battery.STATUS_CHARGING</code> if the battery is in charge,
+-- or <code>battery.STATUS_DISCHARGING</code> if the battery is
+-- currently the only power supply. At last, the symbol
+-- <code>battery.STATUS_UNKNOWN</code> is used when the provider has
+-- no information on the battery slot.</p></li>
+--
+-- <li><code>seconds</code>
+--
+-- <p>The number of seconds until the battery is empty or loaded,
+-- whether its status is discharging or charging. This information is
+-- currently only available if the
+-- <code>/proc/acpi/battery/&lt;ID&gt;/</code> path is
+-- available</p></li>
+--
+-- <li><code>time</code>
+--
+-- <p>The <code>seconds</code> information, formatted as a date.</p></li>
+--
+-- </ul>
+--
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009, David Soulayrol
+-- @copyright 2009,2010,2011 David Soulayrol
 module('flaw.battery')
 
 
@@ -120,28 +119,15 @@ STATUS_DISCHARGING = 'v'
 
 --- The battery provider prototype.
 --
--- <p>The battery provider type is set to battery._NAME. Its status
--- data are read from the files found under
--- <code>/sys/class/power_supply/&lt;BAT_ID&gt;</code>.</p>
---
--- <p>The battery provider data is composed of two fields.</p>
---
--- <ul>
--- <li><code>load</code><br/>
--- The current battery load in percents.</li>
--- <li><code>status</code><br/>
--- presents the current power supply utilisation. Its value can be
--- <code>STATUS_PLUGGED</code> if AC adaptor is in use and there is no
--- activity on the battery, <code>STATUS_CHARGING</code> if the
--- battery is in charge, or <code>STATUS_DISCHARGING</code> if the
--- battery is currently the only power supply.</li>
--- </ul>
+-- <p>The battery provider type is set to
+-- <code>battery._NAME</code>.</p>
 --
 -- @class table
 -- @name BatteryProvider
 BatteryProvider = flaw.provider.CyclicProvider:new{ type = _NAME }
 
---- Load state information from /proc/acpi/battery/&lt;ID&gt;/state if it exists
+--- Load state information from
+--- <code>/proc/acpi/battery/&lt;ID&gt;/</code> if it exists.
 function BatteryProvider:load_from_procfs()
    local r = false
    local p = self.data.proc
@@ -172,7 +158,8 @@ function BatteryProvider:load_from_procfs()
    end
 end
 
---- Load state information from /proc/acpi/battery/&lt;ID&gt;/state if it exists
+--- Load state information from
+--- <code>/sys/class/power_supply/&lt;ID&gt;/</code> if it exists.
 function BatteryProvider:load_from_sysfs()
    local f = nil
 
@@ -222,7 +209,7 @@ end
 -- stored in the global provider cache.</p>
 --
 -- @param  slot the identifier of the battery for which the new
---         provider should gather information
+--         provider should gather information.
 -- @return a brand new battery provider, or an existing one if the
 --         given slot was already used to create one.
 function provider_factory(slot)

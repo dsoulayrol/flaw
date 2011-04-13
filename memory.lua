@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009,2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -29,78 +29,95 @@ local flaw = {
 }
 
 
---- Memory information gadgets and provider.
+--- Memory information.
 --
 -- <p>This module contains a provider for memory status and two
 -- gadgets: a text gadget and a graph gadget.</p>
 --
--- <h2>Text Gadget</h2>
+-- <h2>Gadgets</h2>
 --
--- <p>Without any arguments, the text gadget tracks the available
--- memory percentage with the default <b>flaw</b> refresh value.</p>
+-- <p>The ID parameter has no meaning for the memory gadgets. Memory
+-- gadgets provide no custom parameters. See the <a
+-- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
 --
--- <div class='example'>
--- g = flaw.gadget.new('flaw.battery.textbox', '')
--- </div>
+-- <h3>Text Gadget</h3>
 --
--- <p>Note that the ID has no meaning for the memory provider, so you
--- can fill whatever you want. Remember anyway that the ID must remain
--- unique among all memory gadgets you could create.</p>
---
--- <p>Like any other gadgets, the memory ones support <a
--- href='flaw.event.html'>events</a>.</p>
---
--- <div class='example'>
--- g.add_event(<br/>
--- &nbsp;&nbsp;&nbsp;flaw.event.LatchTriger:new{
--- condition = function(d) return d.load &gt; 95 end },<br/>
--- &nbsp;&nbsp;&nbsp;function(g) naughty.notify{<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title = "Memory Full",<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text = "Memory shortage! Consider closing some applications.",<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = 5,<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position = "top_right",<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fg = beautiful.fg_focus,<br/>
--- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bg = beautiful.bg_focus} end)
--- </div>
---
--- <h2>Graph Gadget</h2>
+-- <p>The memory text gadget can be instantiated by indexing the
+-- gadget module with <code>text.memory</code>. By default, the gadget
+-- pattern is <code>$ratio%</code>. See the provider's documentation
+-- below to learn about the available variables.</p>
 --
 -- <div class='example'>
--- g = flaw.gadget.new('flaw.memory.graph', '', {}, {<br/>
--- &nbsp;&nbsp;&nbsp;width = '35',<br/>
--- &nbsp;&nbsp;&nbsp;height = '0.8',<br/>
--- &nbsp;&nbsp;&nbsp;grow = 'right',<br/>
--- &nbsp;&nbsp;&nbsp;bg = beautiful.bg_normal,<br/>
--- &nbsp;&nbsp;&nbsp;fg = beautiful.fg_normal,<br/>
--- &nbsp;&nbsp;&nbsp;max_value = '100',<br/>
--- })
+-- g = flaw.gadget.text.memory('')
 -- </div>
+--
+-- <h3>Graph Gadget</h3>
+--
+-- <p>The memory graph gadget can be instantiated by indexing the
+-- gadget module with <code>graph.memory</code>. By default, the chart
+-- displayed by the gadget shows the evolution of
+-- <code>ratio</code>. See the provider's documentation below to learn
+-- about the available variables.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.graph.memory(<br/>
+-- &nbsp;&nbsp;&nbsp;'', {}, { width = 60, height = 18 })
+-- </div>
+--
+-- <h2>Provider</h2>
+--
+-- <p>The memory provider loads its information from
+-- <code>/proc/meminfo/</code>. This file format is explained, among
+-- other places, at <a
+-- href="http://www.redhat.com/advice/tips/meminfo.html">http://www.redhat.com/advice/tips/meminfo.html</a></p>
+--
+-- <p>The memory provider computed data is composed of the following
+-- field.</p>
+--
+-- <ul>
+--
+-- <li><code>ratio</code>
+--
+-- <p>The percentage of memory currently used.</p></li>
+--
+-- </ul>
+--
+-- <p>The provider data also stores the raw values read from the
+-- <code>/proc/meminfo</code> file. This information can be found in
+-- <code>proc</code> and is composed of the following fields.
+--
+-- <ul>
+--
+-- <li><code>proc.meminfo_memtotal</code>
+--
+-- <p>The memory available on the system.</p></li>
+--
+-- <li><code>proc.meminfo_cached</code>
+--
+-- <p>The memory affected to cached data.</p></li>
+--
+-- <li><code>proc.meminfo_buffers</code>
+--
+-- <p>The memory affected to application buffers data.</p></li>
+--
+-- <li><code>proc.meminfo_memfree</code>
+--
+-- <p>The free memory.</p></li>
+--
+-- </ul>
+--
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009, David Soulayrol
+-- @copyright 2009,2010,2011 David Soulayrol
 module('flaw.memory')
 
 
 --- The memory provider prototype.
 --
--- <p>
--- The memory provider type is set to memory._NAME. Its status data
--- are read from <code>/proc/meminfo</code>.</p>
---
--- <p>The provider data provides the quantity of memory occupied in
--- <code>data.ratio</code>. The table <code>data.proc</code> contains
--- the values read in the source file. Remarquable values are:</p>
---
--- <ul>
--- <li><code>meminfo_memtotal</code><br/>
--- The memory available on the system.</li>
--- <li><code>meminfo_cached</code><br/>
--- The memory affected to cached data.</li>
--- <li><code>meminfo_buffers</code><br/>
--- The memory affected to application buffers data.</li>
--- <li><code>meminfo_memfree</code><br/>
--- The free memory.</li>
--- </ul>
+-- <p>The memory provider type is set to
+-- <code>memory._NAME</code>.</p>
 --
 -- @class table
 -- @name MemoryProvider
@@ -130,10 +147,10 @@ end
 
 --- A factory for memory providers.
 --
--- <p>Only one provider is built. Created provider is stored in the
--- global provider cache.</p>
+-- <p>Only one provider is built.</p>
 --
--- @return a brand new memory provider, or the existing one if any.
+-- @return a brand new memory provider, or the existing one if found
+--         in the providers cache.
 function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.

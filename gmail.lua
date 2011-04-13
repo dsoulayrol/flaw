@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2010 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -33,30 +33,67 @@ local flaw = {
 
 --- GMail report gadget and provider.
 --
--- <p>This module contains a provider for GMail contents and one text
+-- <p>This module contains a provider for GMail contents and a text
 -- gadget.</p>
 --
--- <h2>Text Gadget</h2>
+-- <h2>Gadget</h2>
 --
--- <p>The GMail status text gadget allows you to configure the
--- display of the raw provider data. By default, the gadget pattern is
--- <code>'$count messages'</code>.</p>
---
--- <p>To create such a gadget, add the following line to your
--- configuration.</p>
---
--- <div class='example'>
--- g = flaw.gadget.new('flaw.gmail.textbox')
--- </div>
---
--- <p>If you want to provide your own pattern, add the pattern gadget
--- option:</p>
+-- <p>The gmail gadget can be instantiated by indexing the gadget
+-- module with <code>text.gmail</code>. The ID parameter has no
+-- meaning for this gadget, and it takes no particular parameters. By
+-- default, the gadget pattern is <code>'$count messages'</code>. See
+-- the <a href="<%=luadoc.doclet.html.module_link('flaw.gadget',
+-- doc)%>">gadget</a> module documentation to learn about standard
+-- gadgets parameters.</p>
 --
 -- <div class='example'>
--- g = flaw.gadget.new('flaw.gmail.textbox',<br/>
--- &nbsp;&nbsp;&nbsp;{ pattern = 'Gmail: &lt;span color="#ffffff"&gt;
--- $count&lt;/span&gt;' })
+-- g = flaw.gadget.text.gmail()
 -- </div>
+--
+-- <p>The gmail gadget is updated every <code>delay</code> seconds,
+-- like any other gadget. However, clicking on the gadget triggers
+-- immediate mail check.
+--
+-- <h2>Provider</h2>
+--
+-- <p>The gmail provider gets it information by downloading with
+-- <code>curl</code> the feed at
+-- <code>https://mail.google.com/mail/feed/atom/unread</code>. Of
+-- course, this URL needs authentication, so the file
+-- <code>$HOME/.netrc</code> should at least have a line with the
+-- following format:</p>
+--
+-- <div class='example'>
+-- machine mail.google.com login my_login password my_password
+-- </div>
+--
+-- <p>This file is read by <code>curl</code> to proceed to
+-- authentication when asked. Since it keeps unobfuscated passwords,
+-- this file shall be readable only by the user.</p>
+--
+-- <p>The gmail provider data is composed of the following fields.</p>
+--
+-- <ul>
+--
+-- <li><code>timestamp</code>
+--
+-- <p>The date of the last check.</p></li>
+--
+-- <li><code>count</code>
+--
+-- <p>The current number of unread messages.</p></li>
+--
+-- <li><code>mails</code>
+--
+-- <p>The unread threads. This text block is intended to be used in a
+-- notification popup or a tooltip, like this:</p>
+--
+-- <div class='example'>
+-- gmail_gadget:set_tooltip('Unread threads at $timestamp\n$mails')
+-- </div></li>
+--
+-- </ul>
+--
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
 -- @copyright 2010, David Soulayrol
@@ -64,19 +101,7 @@ module('flaw.gmail')
 
 --- The gmail provider prototype.
 --
--- <p>The gmail provider type is set to gmail._NAME. Its status data
--- are read from the https://mail.google.com/mail/feed/atom/unread"
--- feed using curl. You will very certainly need to provide to curl
--- your GMail credentials (see <i>curl(1)</i>).
---
--- <p>The gmail provider data is composed of three fields.</p>
---
--- <ul>
--- <li><code>count</code><br/>
--- The current number of unread messages.</li>
--- <li><code>mails</code><br/>
--- The unread titles.</li>
--- </ul>
+-- <p>The gmail provider type is set to gmail._NAME.</p>
 --
 -- @class table
 -- @name GMailProvider
@@ -142,13 +167,13 @@ function GMailProvider:do_refresh()
    f:close()
 end
 
---- A factory for GMail providers.
+--- A factory for GMail provider.
 --
 -- <p>Only one provider is built. It is stored in the global provider
 -- cache.</p>
 --
--- @return a brand new gmail provider, or an existing one if the
---         given slot was already used to create one.
+-- @return a brand new gmail provider, or the existing one if found in
+--         the providers cache.
 function provider_factory()
    local p = flaw.provider.get(_NAME, '')
    -- Create the provider if necessary.
