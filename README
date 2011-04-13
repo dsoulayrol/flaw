@@ -1,9 +1,6 @@
-This is Flaw, a Lua OO management framework for Awesome WM widgets.
-
-Flaw stands for Fully Loaded AWesome. It is a LUA object oriented
-library providing a thin abstraction layer above awesome widgets and
-refresh mechanisms. It is aimed at being simple and resources
-efficient.
+Flaw is a LUA object oriented library providing a thin abstraction
+layer above awesome widgets. It is aimed at being simple and resources
+efficient. See <http://david.soulayrol.name/projects/flaw/>.
 
 Flaw requires luafilesystem. To learn more, please read the provided
 flaw(7) man page. You can read it without installing it on the system
@@ -17,47 +14,5 @@ installed, you can use the following command to extract HTML
 documentation pages.
 
   LUA_PATH="path_toflaw/doclet/html/?;;" luadoc -d html --nofiles *.lua
-
-For the most impatient or curious, here is a quick glance at flaw
-usage:
-
-  require('flaw')
-
-  -- Create battery monitor icon
-  g_bat_icon = flaw.gadget.new('flaw.battery.imagebox', 'BAT0')
-  g_bat_icon.add_event(
-    flaw.event.LatchTriger:new{condition = function(d) return d.load < 75 end},
-    function(g) g.widget.image = image(beautiful.battery_icon) end
-  )
-  g_bat_icon.add_event(
-    flaw.event.LatchTriger:new{condition = function(d) return d.load < 25 end},
-    function(g) g.widget.image = image(beautiful.battery_low_icon) end
-  )
-  g_bat_icon.add_event(
-    flaw.event.LatchTriger:new{condition = function(d) return d.load < 10 end},
-    function(g) naughty.notify{
-      title = "Battery Warning",
-      text = "Battery low! " .. g.provider.data.load .. "% left!",
-      timeout = 5, position = "top_right",
-      fg = beautiful.fg_focus, bg = beautiful.bg_focus} end
-  )
-  g_bat_icon.add_event(
-    flaw.event.LatchTriger:new{condition =
-      function(d) return d.status == flaw.battery.STATUS_CHARGING end},
-    function(g) g.widget.image = image(beautiful.battery_load_icon) end
-  )
-
-  -- Create battery monitor textbox
-  g_bat_text = flaw.gadget.new('flaw.battery.textbox', 'BAT0')
-  g_bat_text.add_event(
-    flaw.event.LatchTriger:new{ condition = function(d) return d.load < 10 end },
-    function(g) g.pattern = '<bg color="#ff6565"/>$load%' end
-  )
-
-  wibox.widgets = {
-    g_bat_icon.widget,
-    w_bat_text.widget,
-  }
-
 
 -- David Soulayrol <david.soulayrol AT gmail DOT net>

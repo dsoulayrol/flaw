@@ -19,7 +19,7 @@ To add functionality to awesome widgets,
 defines gadget objects, which are a wrapper around a widget.  All
 gadgets have properties, events, a refresh mechanism and a data
 provider (see below).  Gadgets can wrap all awesome widget type,
-namely text boxes, image boxes or graphs.
+namely text boxes, image boxes, graphs or progress bars.
 .B flaw
 provides many gadgets for common system information (like CPU or
 memory activity).
@@ -38,21 +38,35 @@ trigger, which computes the condition, and an action.  Event triggers
 are tested by the providers only when data changes.  Both the
 condition and the action are provided by the user.
 .SH USAGE
-Before anything else, insert require('flaw') in your configuration file.
-.SS The flaw API
-.IP flaw.gadget.new
-.SH WIDGET TYPES
-.SS Battery
-.SS CPU
-.SS Memory
-.SS Network
-
-.SH EXAMPLES
-
+.B flaw
+depends on the
+.RB lua-filesystem
+package which can be found
+.IR http://luaforge.net/projects/luafilesystem .
+Once installed, the following statement must be inserted in awesome
+configuration before any
+.B flaw
+gadget or mechanism is used.
+.RS
+\f(CWrequire('flaw')\fP
+.RE
+.PP
+Using
+.B flaw
+consists in creating gadgets, passing them parameters to customize their
+display and events to add some behaviour to them, and then adding them
+in a wibox like any other awesome widget.
+.B flaw
+and awful gadgets can live together. The complete
+.B flaw
+documentation is available in Luadoc format. Enter the following command to generate it.
+.RS
+\f(CWLUA_PATH="path_toflaw/doclet/html/?;;" luadoc -d html --nofiles *.lua\fP
+.RE
 .SH DIAGNOSTICS
 .B flaw
 tries to recover upon bad invocations.  When something wrong occurs, it
-outpus warning or error messages to stderr (for example, if awesome
+outputs warning or error messages to stderr (for example, if awesome
 was started with xsession, output will be found in
 .I ~/.xsession-errors
 ).

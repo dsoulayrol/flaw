@@ -37,20 +37,22 @@
             you to write new system resources interfaces or to
             automate the configuration of new widgets.
           </p>
+
+          <h2>Installation</h2>
           <p>
-            To start using <b>flaw</b>, simply add the following
-            requirement at the top of your <b>awesome</b> configuration
-            file. You will find many code samples in the module
-            descriptions.
+            The source code of <b>flaw</b> is hosted
+            on <a href="http://github.com">GitHub</a> and can be
+            browsed <a href="http://github.com/dsoulayrol/flaw">here</a>. There
+            is neither archive nor stable release at this time.
           </p>
-          <div class='example'>require('flaw')</div>
           <p>
-            <i>Please note:</i> <b>flaw</b> tries to remain as easy as
-            possible to install. However, to keep some things simple,
-            it relies on <b>lua-filesystem</b> which can be found
+            The only dependency of <b>flaw</b>, besides the need to
+            run it inside <b>awesome</b> of course, is
+            the <b>lua-filesystem</b> package which can be found
             at <a href="http://luaforge.net/projects/luafilesystem">LuaForge.net</a>.
           </p>
           <%if not options.nomodules and #doc.modules > 0 then%>
+
           <h2>Documentation</h2>
           <table class="module_list">
             <tr><th colspan="2">Modules</th></tr>
@@ -62,14 +64,6 @@
             <%end%>
           </table>
           <%end%>
-
-          <h2>Download</h2>
-          <p>
-            The source code of <b>flaw</b> is hosted
-            on <a href="http://github.com">GitHub</a> and can be
-            browsed <a href="http://github.com/dsoulayrol/flaw">here</a>. There
-            is neither archive nor stable release at this time.
-          </p>
 
           <h2>Credits and License</h2>
           <p>
