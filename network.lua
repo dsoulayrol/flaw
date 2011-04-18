@@ -34,8 +34,9 @@ local flaw = {
 
 --- Network activity.
 --
--- <p>This module contains a provider for network status and activity and two
--- gadgets: a text gadget and a graph gadget.</p>
+-- <p>This module contains a provider for network status and activity
+-- and three gadgets: a text gadget, an icon gadget and a graph
+-- gadget.</p>
 --
 -- <h2>Gadgets</h2>
 --
@@ -46,6 +47,18 @@ local flaw = {
 -- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
 -- doc)%>">gadget</a> module documentation to learn about standard
 -- gadgets parameters.</p>
+--
+-- <h3>Icon Gadget</h3>
+--
+-- <p>The network icon gadget can be instantiated by indexing the
+-- gadget module with <code>icon.network</code>. Here is an exemple
+-- which assumes the icon path is stored in a <b>beautiful</b>
+-- property.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.icon.network(<br/>
+-- &nbsp;&nbsp;&nbsp;'cpu', {}, { image = image(beautiful.net_icon) })<br/>
+-- </div>
 --
 -- <h3>Text Gadget</h3>
 --
@@ -203,6 +216,9 @@ function provider_factory()
    end
    return p
 end
+
+-- An icon gadget for network status display.
+flaw.gadget.register.icon(_M)
 
 -- A Text gadget for network status display.
 flaw.gadget.register.text(_M, { delay = 1, pattern = 'in:$net_in out:$net_out' })
