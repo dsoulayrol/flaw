@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009, 2010, 2011 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009,2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -41,30 +41,67 @@ local flaw = {
 --
 -- <p>To add functionality to awesome widgets, <b>flaw</b> defines
 -- gadget objects, which are a wrapper around a widget. Gadgets have
--- properties, events, a refresh mechanism and a data provider. They
--- can wrap all <b>awesome</b> widget types, but the most commonly
--- used to report information are wrapped today: text boxes, image
--- boxes or graphs. <b>flaw</b> provides many gadgets for common
--- system information (like battery, CPU or memory activity) in
--- different modules. This one contains the core gadget prototypes and
--- functions.</p>
---
--- <p>A gadget is identified by its type and an identifier, which must
--- remain unique for one type. The gadget type is a mnemonic used to
--- create a gadget and identify it in the store (in conjonction with
--- its name). It is usually composed of the module name and the kind
--- of widget wrapped (like <code>BatteryIcon</code> or
--- <code>CPUGraph</code>).</p>
---
--- <p>This module provides the simplest gadgets, which are a prototype
--- for all the other ones. They are <a
+-- properties, events, a refresh mechanism and a data provider. Even
+-- though gadgets could wrap any <b>awesome</b> widget type,
+-- <b>flaw</b> is focused on the most commonly used to report
+-- information: text boxes, image boxes, graphs or progress
+-- bars. These gadgets are <a
 -- href='#TextGadget'><code>TextGadget</code></a>, <a
 -- href='#GraphGadget'><code>GraphGadget</code></a>, <a
 -- href='#BarGadget'><code>BarGadget</code></a> and <a
--- href='#IconGadget'><code>IconGadget</code></a> which embed a
--- textbox, a graph, a progress bar and an imagebox respectively. They
--- provide the raw gadgets mechanisms adapted to the type of widget
--- they wrap.</p>
+-- href='#IconGadget'><code>IconGadget</code></a> which embed a text
+-- box, a graph, a progress bar and an image box
+-- respectively.</p>
+--
+-- <p><b>flaw</b> provides many gadgets for common system information
+-- (like battery, CPU or memory activity) in different modules. This
+-- one contains the core gadget prototypes and functions.</p>
+--
+-- <h2>Instantiation, Initialization Parameters</h2>
+--
+-- <p>The following is the complete pattern to instantiate a
+-- gadget:</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.&lt;type&gt;.&lt;name&gt;(&lt;id&gt;, &lt;gopts&gt;, &lt;wopts&gt;)
+-- </div>
+--
+-- <p>A gadget is first identified by its <code>type</code> and its
+-- <code>name</code>. The <code>type</code> is what identifies the
+-- gadget kind and can be <code>Text</code>, <code>Icon</code>,
+-- <code>Graph</code> and <code>Bar</code>. The <code>name</code> is
+-- usually the name of the module which defines it (eg. the battery
+-- module defines battery gadgets).</p>
+--
+-- <p>Whatever the gadget, up to three parameters can be passed at
+-- creation time, only the first being mandatory.</p>
+--
+-- <ul>
+--
+-- <li><code>id</code>
+--
+-- <p>This first and most important parameter is the gadget
+-- identifier, or ID. It is altogether the gadget unique name and a
+-- string that can be used by this gadget provider to identify a
+-- resource (eg. the CPU to monitor or the id of the battery). Whether
+-- the provider needs an ID or not is described in service modules
+-- pages, but this parameter must always be non-null.</p></li>
+--
+-- <li><code>gopts</code>
+--
+-- <p>The next parameter is a table providing properties for the
+-- gadget to create. Again, modules documentation will provide
+-- information on the available properties. This table can also be
+-- used to store user data which will be available in the event
+-- triggering functions for example.</p></li>
+--
+-- <li><code>wopts</code>
+--
+-- <p>The last parameter is another table providing properties for the
+-- wrapped <b>awful</b> widget. The acceptable options are detailed in
+-- the <b>awesome</b> documentation.</p></li>
+--
+-- </ul>
 --
 -- <p>All created gadgets are kept in a <a
 -- href='#_gadgets_cache'>global store</a> from which they can be
@@ -72,10 +109,82 @@ local flaw = {
 -- instances, but also about their prototype, their provider, and
 -- defaults properties.</p>
 --
--- <b>TODO: Procedure to write a new gadget prototype</b>
+-- <h2>Usage in <b>awesome</b> configuration</h2>
+--
+-- <p>Gadgets are meant to be displayed in <i>wiboxes</i>, like any
+-- other <b>awful</b> widget. Actually, it is the wrapped widget that
+-- will be added to the <i>wibox</i>. To achieve this, every gadget
+-- exposes its underlying widget with the <code>widget</code>
+-- member.</p>
+--
+-- <h2>Types Details</h2>
+--
+-- <h3>Icon Gadgets</h3>
+--
+-- <p>Icon gadgets wrap the <b>awful</b> <i>imagebox</i> widget. They
+-- can display an image and that is all, which makes them the simpler
+-- gadget provided by <b>flaw</b>. What's interesting about them
+-- though is that like any other gadget they rely on one provider and
+-- can make use of events.</p>
+--
+-- <p>Assuming the beautiful property <code>battery_icon</code> is the
+-- path to a default battery icon path, the following statement
+-- creates a new battery status icon gadget. Note the
+-- <code>image</code> widget property which is explained in
+-- <b>awful</b> documentation.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.icon.battery(<br/>
+-- &nbsp;&nbsp;&nbsp;'BAT0', {}, { image = image(beautiful.battery_icon) })<br/>
+-- </div>
+--
+-- <h3>Text Gadgets</h3>
+--
+-- <p>Text gadgets allow you to display any textual information. What
+-- makes them really interesting is that the display can be used to
+-- format information returned by the provider associated to the
+-- gadget.</p>
+--
+-- <p>All text gadgets provide a default content related to the
+-- information they gather from the provider (percents of available
+-- memory, or of battery load for example). The <code>pattern</code>
+-- gadget option allows every text gadget to be customized.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.text.alsa('0',<br/>
+-- &nbsp;&nbsp;&nbsp;{ pattern = '&lt;span color="#ffffff"&gt;
+-- $volume&lt;/span&gt;%($mute)' })
+-- </div>
+--
+-- <p>The variables to be formatted must be prefixed by a dollar
+-- sign. The available variables are detailed in the providers
+-- documentations.</p>
+--
+-- <h3>Graph Gadgets</h3>
+--
+-- <p>Graph gadgets are an interesting way to represent data variation
+-- in the time. As of text gadgets, all graph gadgets provide default
+-- content to be drawn. This content can be customized uing the
+-- <code>values</code> gadget option.</p>
+--
+-- <div class='example'>
+-- g = flaw.gadget.graph.memory('', { values = {'free'} }, {<br/>
+-- &nbsp;&nbsp;&nbsp;width = '35',<br/>
+-- &nbsp;&nbsp;&nbsp;height = '0.8',<br/>
+-- &nbsp;&nbsp;&nbsp;grow = 'right',<br/>
+-- &nbsp;&nbsp;&nbsp;bg = beautiful.bg_normal,<br/>
+-- &nbsp;&nbsp;&nbsp;fg = beautiful.fg_normal,<br/>
+-- &nbsp;&nbsp;&nbsp;max_value = '100',<br/>
+-- })
+-- </div>
+--
+-- <h3>Bar Gadgets</h3>
+--
+-- <p><b>FIXME</b></p>
+--
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009, 2010 David Soulayrol
+-- @copyright 2009,2010,2011 David Soulayrol
 module('flaw.gadget')
 
 
@@ -85,7 +194,7 @@ module('flaw.gadget')
 -- implementation.</p>
 --
 -- <p>This table is private to the <code>gadget</code> module. It is
--- mainly used as a reference for registering gadge prototypes.</p>
+-- mainly used as a reference for registering gadget prototypes.</p>
 --
 -- @class table
 -- @name _gadgets_types
@@ -106,8 +215,7 @@ local _gadgets_types = {}
 -- </ul>
 --
 -- <p>This table is private to the <code>gadget</code> module. It can
--- be accessed using the <a href='#get'><code>get</code></a>, <a
--- href='#set'><code>set</code></a> and <a
+-- be accessed using the <a href='#get'><code>get</code></a> and <a
 -- href='#register'><code>register</code></a> functions of this
 -- module.</p>
 --
@@ -121,17 +229,8 @@ local _gadgets_cache = {}
 -- entry retains the given prototype, provider factory and defaults
 -- tables and associates a gadget instance table to them.</p>
 --
--- <p>The function fails if the given prototype is nil or has a nil type.
--- Before storing the defaults tables, it checks and eventually
--- creates mandatory default options:</p>
---
--- <ul>
--- <li><code>gopt.delay</code><br/>
--- This is the gadget refresh rate. Its default value is 10 seconds.</li>
--- <li><code>wopt.alignment</code><br/>
--- This is the value to set in widget align property when creating the
--- gadget. It defaults to 'right'.</li>
--- </ul>
+-- <p>The function fails if the given prototype is nil or has a nil
+-- type.</p>
 --
 -- <p>Note that unless you create your own gadget prototype, you do
 -- not have to call this function. Also note that the current
@@ -217,18 +316,21 @@ end
 --- Create a new gadget.
 --
 -- <p>This function is the only gadget factory and the main
--- <b>flaw</b> interface for a user to build its <i>wibox</i>. It
--- immediately fails if given type or identifier is nil, or if no such
--- type was registered in the store. If it was, the gadget is created
--- from the data available in the matching store entry.</p>
+-- <b>flaw</b> interface for a user to populate its <i>wibox</i> with
+-- gadgets. However, it is not necessary to call it directly since the
+-- module provides intelligent indexation to hide it.</p>
+--
+-- <p>It immediately fails if given type or identifier is nil, or if
+-- no such type was registered in the store. If it was, the gadget is
+-- created from the data available in the matching store entry.</p>
 --
 -- <p>If a matching entry is found in the store, the function first
 -- completes the given options tables with the defaults found in the
 -- entry. Then it creates the gadget using the found prototype and
 -- provider factory, and applies the options tables to the gadget and
 -- the wrapped widget respectively. At last, it starts the gadget
--- monitoring with the mandatory <code>delay</code> gadget option and
--- stores it in the store entry instances table.</p>
+-- monitoring with the <code>delay</code> gadget option and stores it
+-- in the store entry instances table.</p>
 --
 -- @param  t the type of the gadget to create.
 -- @param  id the uniquer identifier of the gadget to create.
@@ -306,11 +408,14 @@ end
 --- Hook the gadget to clock events.
 --
 -- <p>This method is called automatically by the <a
--- href='#new'><code>new</code></a> function, with the mandatory
+-- href='#new'><code>new</code></a> function, with the
 -- <code>delay</code> argument of its <code>gopt</code> options
--- table.</p>
+-- table. The <code>delay</code> will be considered or not by the
+-- provider depending on its kind.</p>
 --
--- @param  delay the delay between gadget updates in seconds.
+-- @param delay the delay between gadget updates in seconds. It can be
+--        nil if the underlying provider is not a <a
+--        href="flaw.provider.html#CyclicProvider"><code>CyclicProvider</code></a>.
 function Gadget:register(delay)
    -- Subscribe this gadget to the provider.
    if self.provider ~= nil then

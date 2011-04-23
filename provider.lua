@@ -1,5 +1,5 @@
 -- flaw, a Lua OO management framework for Awesome WM widgets.
--- Copyright (C) 2009 David Soulayrol <david.soulayrol AT gmail DOT net>
+-- Copyright (C) 2009,2010,2011 David Soulayrol <david.soulayrol AT gmail DOT net>
 
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -33,18 +33,17 @@ local flaw = {
 --
 -- <p>In <b>flaw</b>, all data is gathered by provider objects which,
 -- in an attempt to minimize resources usage, can be shared among
--- gadgets. The providers can poll disks or memory for their
--- information, or can be updated by scripts or direct <b>Lua</b>
--- invocation, like <b>awful</b> callbacks. When updated, or at a
--- given rate, providers update the gadgets that have subscribed to
--- them.
+-- gadgets. The providers can poll disks or memory at a given rate for
+-- their information, or can be updated by scripts or direct
+-- <b>Lua</b> invocation, like <b>awful</b> callbacks. When updated,
+-- providers notify the gadgets that have subscribed to them.
 --
 -- <p>Providers are normally handled automatically when a gadget is
 -- created. You only have to take care of them when you are writing
 -- your own gadget, or if you want to create a new provider, or extend
 -- an existing one. <b>flaw</b> already implements many providers for
 -- common system information. The existing providers are usually
--- stored in the module of the widget type they serve.</p>
+-- defined in the module of the widget type they serve.</p>
 --
 -- <p>A provider is identified by its type and an identifier, which
 -- must remain unique for one type. The provider type usually
@@ -62,7 +61,7 @@ local flaw = {
 -- user, but allows gadgets to share providers.</p>
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009, David Soulayrol
+-- @copyright 2009,2010,2011 David Soulayrol
 module('flaw.provider')
 
 
