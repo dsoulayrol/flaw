@@ -214,7 +214,7 @@ local battery = load_battery_support()
 --
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
--- @copyright 2009,2011,2011, David Soulayrol
+-- @copyright 2009,2010,2011, David Soulayrol
 module("flaw")
 
 --- Notify the dropped service modules to the user.
