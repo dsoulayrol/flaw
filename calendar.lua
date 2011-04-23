@@ -54,10 +54,9 @@ local flaw = {
 -- <p>The calendar gadget can be instantiated by indexing the gadget
 -- module with <code>text.calendar</code>. The ID parameter has no
 -- meaning for the calendar gadget, and it takes no particular
--- parameters. See the <a
--- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
--- doc)%>">gadget</a> module documentation to learn about standard
--- gadgets parameters.</p>
+-- parameters. See the <a href="flaw.gadget.html">gadget</a>
+-- module documentation to learn about standard gadgets
+-- parameters.</p>
 --
 -- <div class='example'>
 -- g = flaw.gadget.text.calendar('')

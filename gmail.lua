@@ -42,9 +42,8 @@ local flaw = {
 -- module with <code>text.gmail</code>. The ID parameter has no
 -- meaning for this gadget, and it takes no particular parameters. By
 -- default, the gadget pattern is <code>'$count messages'</code>. See
--- the <a href="<%=luadoc.doclet.html.module_link('flaw.gadget',
--- doc)%>">gadget</a> module documentation to learn about standard
--- gadgets parameters.</p>
+-- the <a href="flaw.gadget.html">gadget</a> module documentation to
+-- learn about standard gadgets parameters.</p>
 --
 -- <div class='example'>
 -- g = flaw.gadget.text.gmail()

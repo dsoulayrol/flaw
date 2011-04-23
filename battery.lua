@@ -39,9 +39,8 @@ local flaw = {
 --
 -- <p>The ID of the gadget designates the battery slot to be
 -- monitored. Battery gadgets provide no custom parameters. See the <a
--- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
--- doc)%>">gadget</a> module documentation to learn about standard
--- gadgets parameters.</p>
+-- href="flaw.gadget.html">gadget</a> module documentation to learn
+-- about standard gadgets parameters.</p>
 --
 -- <h3>Icon Gadget</h3>
 --

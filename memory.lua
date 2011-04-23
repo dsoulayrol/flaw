@@ -38,9 +38,8 @@ local flaw = {
 --
 -- <p>The ID parameter has no meaning for the memory gadgets. Memory
 -- gadgets provide no custom parameters. See the <a
--- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
--- doc)%>">gadget</a> module documentation to learn about standard
--- gadgets parameters.</p>
+-- href="flaw.gadget.html">gadget</a> module documentation to learn
+-- about standard gadgets parameters.</p>
 --
 -- <h3>Text Gadget</h3>
 --

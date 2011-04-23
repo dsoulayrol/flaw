@@ -43,10 +43,9 @@ local flaw = {
 -- <p>The ID of the gadgets designates the network device to be
 -- monitored, in the <code>/proc/net/dev</code> file, as indicated in
 -- the provider's documentation below. Network gadgets provide no
--- custom parameters. See the <a
--- href="<%=luadoc.doclet.html.module_link('flaw.gadget',
--- doc)%>">gadget</a> module documentation to learn about standard
--- gadgets parameters.</p>
+-- custom parameters. See the <a href="flaw.gadget.html">gadget</a>
+-- module documentation to learn about standard gadgets
+-- parameters.</p>
 --
 -- <h3>Icon Gadget</h3>
 --

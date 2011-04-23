@@ -46,9 +46,8 @@ local flaw = {
 --
 -- <p>The ID of the gadgets designates the identifier of the audio
 -- card to control. ALSA gadgets provide no custom parameters. See the
--- <a href="<%=luadoc.doclet.html.module_link('flaw.gadget',
--- doc)%>">gadget</a> module documentation to learn about standard
--- gadgets parameters.</p>
+-- <a href="flaw.gadget.html">gadget</a> module documentation to learn
+-- about standard gadgets parameters.</p>
 --
 -- <p>All ALSA gadgets specialize their standard counterpart to allow
 -- you to control the volume from the Master channel of the monitored
