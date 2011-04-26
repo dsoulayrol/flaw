@@ -207,7 +207,7 @@ function ALSATextGadget:create(wopt)
 end
 
 flaw.gadget.register.text(
-   _M, { delay = 1, pattern = '$s_volume%' }, ALSATextGadget)
+   _M, { delay = 1, pattern = '$s_volume%' }, {}, ALSATextGadget)
 
 -- A progress bar gadget prototype for ALSA status display.
 ALSABarGadget = flaw.gadget.BarGadget:new{}
@@ -223,7 +223,7 @@ function ALSABarGadget:create(wopt)
 end
 
 flaw.gadget.register.bar(
-   _M, { delay = 1, value = 'volume' }, ALSABarGadget)
+   _M, { delay = 1, value = 'volume' }, {}, ALSABarGadget)
 
 -- An icon gadget prototype for ALSA status display.
 ALSAIconGadget = flaw.gadget.IconGadget:new{}
@@ -238,4 +238,4 @@ function ALSAIconGadget:create(wopt)
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
 
-flaw.gadget.register.icon(_M, { delay = 1 }, ALSAIconGadget)
+flaw.gadget.register.icon(_M, { delay = 1 }, {}, ALSAIconGadget)
