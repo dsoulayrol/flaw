@@ -206,9 +206,6 @@ function ALSATextGadget:create(wopt)
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
 
-flaw.gadget.register.text(
-   _M, { delay = 1, pattern = '$s_volume%' }, {}, ALSATextGadget)
-
 -- A progress bar gadget prototype for ALSA status display.
 ALSABarGadget = flaw.gadget.BarGadget:new{}
 
@@ -221,9 +218,6 @@ function ALSABarGadget:create(wopt)
          awful.button({ }, 5, function() self.provider:lower() end),
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
-
-flaw.gadget.register.bar(
-   _M, { delay = 1, value = 'volume' }, {}, ALSABarGadget)
 
 -- An icon gadget prototype for ALSA status display.
 ALSAIconGadget = flaw.gadget.IconGadget:new{}
@@ -238,4 +232,22 @@ function ALSAIconGadget:create(wopt)
          awful.button({ }, 1, function() self.provider:mute() end)))
 end
 
-flaw.gadget.register.icon(_M, { delay = 1 }, {}, ALSAIconGadget)
+--- Module initialization routine.
+--
+-- <p> This method tests the available information on the system. If
+-- alsa data can be found, if registers gadgets and returns the
+-- module; otherwise it simply returns nil.</p>
+--
+-- @return return this module if it can be used on the system,
+--         false otherwise.
+function init()
+   -- TODO: test alsa.
+
+   flaw.gadget.register.bar(
+      _M, { delay = 1, value = 'volume' }, {}, ALSABarGadget)
+   flaw.gadget.register.text(
+      _M, { delay = 1, pattern = '$s_volume%' }, {}, ALSATextGadget)
+   flaw.gadget.register.icon(_M, { delay = 1 }, {}, ALSAIconGadget)
+
+   return _M
+end

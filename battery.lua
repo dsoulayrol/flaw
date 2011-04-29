@@ -17,6 +17,7 @@
 
 -- Grab environment.
 local io = io
+local lfs = require('lfs')
 local math = math
 local os = os
 
@@ -29,6 +30,32 @@ local flaw = {
    provider = require('flaw.provider')
 }
 
+-- Provider sources.
+local SRC_PROC_DIR = '/proc/acpi/battery/'
+local SRC_SYSFS_DIR = '/sys/class/power_supply/'
+
+-- Helper tools for environment settings.
+local function has_proc_information()
+   return lfs.attributes(SRC_PROC_DIR, 'mode') == 'directory'
+end
+
+local function has_sysfs_information()
+   local path = SRC_SYSFS_DIR
+   local r = false
+   for file in lfs.dir(path) do
+      if file ~= "." and file ~= ".." then
+         local f = io.open(path .. '/' .. file .. '/type')
+         if f ~= nil then
+            if f:read() == 'Battery' then
+               r = true
+            end
+            f:close()
+         end
+      end
+      if r ~= false then break end
+   end
+   return r
+end
 
 --- Battery information gadgets and provider.
 --
@@ -132,9 +159,9 @@ function BatteryProvider:load_from_procfs()
    local p = self.data.proc
 
    r = flaw.helper.file.load_state_file(
-      '/proc/acpi/battery/' .. self.id:upper(), 'state', p)
+      SRC_PROC_DIR .. self.id:upper(), 'state', p)
    r = flaw.helper.file.load_state_file(
-      '/proc/acpi/battery/' .. self.id:upper(), 'info', p) and r
+      SRC_PROC_DIR .. self.id:upper(), 'info', p) and r
 
    if r then
       -- Adapt values.
@@ -163,19 +190,19 @@ function BatteryProvider:load_from_sysfs()
    local f = nil
 
    -- Load raw values.
-   local f = io.open("/sys/class/power_supply/" .. self.id .. "/charge_now")
+   local f = io.open(SRC_SYSFS_DIR .. self.id .. "/charge_now")
    if f ~= nil then
       self.data.sys.charge_now = f:read()
       f:close()
    end
 
-   f = io.open("/sys/class/power_supply/" .. self.id .. "/charge_full")
+   f = io.open(SRC_SYSFS_DIR .. self.id .. "/charge_full")
    if f ~= nil then
       self.data.sys.charge_full = f:read()
       f:close()
    end
 
-   f = io.open("/sys/class/power_supply/" .. self.id .. "/status")
+   f = io.open(SRC_SYSFS_DIR .. self.id .. "/status")
    if f ~= nil then
       self.data.sys.status = f:read()
       f:close()
@@ -197,9 +224,10 @@ end
 
 --- Callback for provider refresh.
 function BatteryProvider:do_refresh()
-   -- TODO: Do elect the method to call.
+   if has_proc_information() then
+      self:load_from_procfs()
+   end
    self:load_from_sysfs()
-   self:load_from_procfs()
 end
 
 --- A factory for battery providers.
@@ -227,8 +255,23 @@ function provider_factory(slot)
    return p
 end
 
--- A Text gadget prototype for battery status display.
-flaw.gadget.register.text(_M, { pattern = '$load% $status' })
 
--- An icon gadget prototype for battery status display.
-flaw.gadget.register.icon(_M, { status = STATUS_UNKNOWN })
+--- Module initialization routine.
+--
+-- <p> This method tests the available information on the system. If
+-- battery data can be found, if registers gadgets and returns the
+-- module; otherwise it simply returns nil.</p>
+--
+-- @return return this module if it can be used on the system,
+--         false otherwise.
+function init()
+   if has_proc_information() or has_sysfs_information() then
+      -- A Text gadget prototype for battery status display.
+      flaw.gadget.register.text(_M, { pattern = '$load% $status' })
+
+      -- An icon gadget prototype for battery status display.
+      flaw.gadget.register.icon(_M, { status = STATUS_UNKNOWN })
+
+      return _M
+   end
+end

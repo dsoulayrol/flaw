@@ -15,33 +15,39 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-local lfs = require('lfs')
+-- Grab environment.
+local ipairs = ipairs
 
 local naughty = require('naughty')
+local table = require('table')
 
--- Helper tools for environment settings.
-function load_battery_support()
-   local mod = nil
-   local path = '/sys/class/power_supply'
-   for file in lfs.dir(path) do
-      if file ~= "." and file ~= ".." then
-         local f = io.open(path .. '/' .. file .. '/type')
-         if f ~= nil then
-            if f:read() == 'Battery' then
-               mod = require('flaw.battery')
-            end
-            f:close()
-         end
+local service_modules = { loaded = {}, dropped = {}, invalid = {} }
+
+local function load_flaw_component(name)
+   local m = require('flaw.' .. name)
+   if m then
+      m = m.init and m.init() or m
+      if m ~= nil then
+         table.insert(service_modules.loaded, name)
+      else
+         table.insert(service_modules.dropped, name)
       end
-      if mod ~= nil then break end
+   else
+      table.insert(service_modules.invalid, name)
    end
-   return mod
+   return m
 end
 
-function load_alsa_support()
-   -- TODO: load this only if amixer, the ALSA subsytem and at least
-   -- one card are present.
-   return require('flaw.alsa')
+local function get_nb_modules(section)
+   return # service_modules[section]
+end
+
+local function get_modules_names(section)
+   local str = ''
+   for _, v in ipairs(service_modules[section]) do
+      str = str .. v .. ' '
+   end
+   return str
 end
 
 -- Essential modules.
@@ -51,17 +57,14 @@ local event = require('flaw.event')
 local helper = require('flaw.helper')
 
 -- Service modules.
-local calendar = require('flaw.calendar')
-local cpu = require('flaw.cpu')
-local gmail = require('flaw.gmail')
-local memory = require('flaw.memory')
-local network = require('flaw.network')
-local title = require('flaw.title')
-
--- Load only the following modules if necessary hardware element or
--- software package is present.
-local alsa = load_alsa_support()
-local battery = load_battery_support()
+local alsa = load_flaw_component('alsa')
+local battery = load_flaw_component('battery')
+local calendar = load_flaw_component('calendar')
+local cpu = load_flaw_component('cpu')
+local gmail = load_flaw_component('gmail')
+local memory = load_flaw_component('memory')
+local network = load_flaw_component('network')
+local title = load_flaw_component('title')
 
 
 --- Introduction to the core concepts and mechanisms.
@@ -227,14 +230,11 @@ module("flaw")
 -- <p>This function can typically be called at the end of the
 -- configuration file, or on demand to check the flaw library status.</p>
 function check_modules()
-   local dropped_modules = ''
-   if alsa == nil then dropped_modules = 'alsa\n' end
-   if battery == nil then dropped_modules = dropped_modules .. 'battery\n' end
-   if dropped_modules ~= '' then
+   if get_nb_modules('dropped') ~= 0 then
       naughty.notify{
          title = "Flaw",
          text = "The following modules are absent from your system:\n"
-            .. dropped_modules,
+            .. get_modules_names('dropped'),
          timeout = 12,
          position = "top_right"}
    end
