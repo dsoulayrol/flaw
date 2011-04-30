@@ -56,7 +56,7 @@ local flaw = {
 --
 -- <div class='example'>
 -- g = flaw.gadget.icon.network(<br/>
--- &nbsp;&nbsp;&nbsp;'cpu', {}, { image = image(beautiful.net_icon) })<br/>
+-- &nbsp;&nbsp;&nbsp;'eth0', {}, { image = image(beautiful.net_icon) })<br/>
 -- </div>
 --
 -- <h3>Text Gadget</h3>
@@ -87,7 +87,7 @@ local flaw = {
 -- <h2>Provider</h2>
 --
 -- <p>The network provider loads its information from
--- <code>/proc/net/dev</code>. It stores the data for eash line, which
+-- <code>/proc/net/dev</code>. It stores the data for each line, which
 -- represent the network devices of the machine. The file format is
 -- explained in the <code>proc</code> manual page (for example at <a
 -- href="http://linux.die.net/man/5/proc">http://linux.die.net/man/5/proc</a></p>

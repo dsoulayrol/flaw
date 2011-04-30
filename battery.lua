@@ -258,8 +258,8 @@ end
 
 --- Module initialization routine.
 --
--- <p> This method tests the available information on the system. If
--- battery data can be found, if registers gadgets and returns the
+-- <p>This method tests the available information on the system. If
+-- battery data can be found, it registers gadgets and returns the
 -- module; otherwise it simply returns nil.</p>
 --
 -- @return return this module if it can be used on the system,
