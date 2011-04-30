@@ -140,11 +140,11 @@ local setmetatable = setmetatable
 -- &nbsp;&nbsp;&nbsp;} )<br/>
 -- <br/>bg:add_event(<br/>
 -- &nbsp;&nbsp;&nbsp;flaw.event.EdgeTrigger:new{
--- condition = function(d) return d.load < 60 end },<br/>
+-- condition = function(d) return d.load &lt; 60 end },<br/>
 -- &nbsp;&nbsp;&nbsp;function (g) g:my_update() end )<br/>
 -- bg:add_event(<br/>
 -- &nbsp;&nbsp;&nbsp;flaw.event.EdgeTrigger:new{
--- condition = function(d) return d.load < 30 end },<br/>
+-- condition = function(d) return d.load &lt; 30 end },<br/>
 -- &nbsp;&nbsp;&nbsp;function (g) g:my_update() end )<br/>
 -- bg:add_event(<br/>
 -- &nbsp;&nbsp;&nbsp;flaw.event.EdgeTrigger:new{<br/>

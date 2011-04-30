@@ -36,7 +36,7 @@ local flaw = {
 -- gadgets. The providers can poll disks or memory at a given rate for
 -- their information, or can be updated by scripts or direct
 -- <b>Lua</b> invocation, like <b>awful</b> callbacks. When updated,
--- providers notify the gadgets that have subscribed to them.
+-- providers notify the gadgets that have subscribed to them.</p>
 --
 -- <p>Providers are normally handled automatically when a gadget is
 -- created. You only have to take care of them when you are writing

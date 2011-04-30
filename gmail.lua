@@ -51,7 +51,7 @@ local flaw = {
 --
 -- <p>The gmail gadget is updated every <code>delay</code> seconds,
 -- like any other gadget. However, clicking on the gadget triggers
--- immediate mail check.
+-- immediate mail check.</p>
 --
 -- <h2>Provider</h2>
 --

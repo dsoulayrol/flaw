@@ -85,7 +85,7 @@ local flaw = {
 --
 -- <p>The provider data also stores the raw values read from the
 -- <code>/proc/meminfo</code> file. This information can be found in
--- <code>proc</code> and is composed of the following fields.
+-- <code>proc</code> and is composed of the following fields.</p>
 --
 -- <ul>
 --

@@ -112,7 +112,7 @@ local wifi = load_flaw_component('wifi')
 -- (which is reduced to <code>Bar</code> in <b>flaw</b>). Thanks to
 -- some nifty tricks, creating a gadget is straight forward. As an
 -- example, the following statement instantiates a very simple gadget
--- which displays the title of the focused window.
+-- which displays the title of the focused window.</p>
 --
 -- <div class='example'>
 -- gtitle = flaw.gadget.text.title('')

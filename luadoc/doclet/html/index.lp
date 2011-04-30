@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+          "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
   <head>
     <title>Flaw Reference Manual</title>
@@ -86,7 +86,13 @@
         </div> <!-- id="content" -->
       </div> <!-- id="main" -->
 
-      <div id="footer"><%=luadoc.doclet.html.include("footer.lp")%></div>
+      <div id="footer">
+        <p>
+          <a href="http://validator.w3.org/check?uri=referer">
+            <img src="http://www.w3.org/Icons/valid-xhtml11-blue" alt="Valid XHTML 1.1" height="31" width="88" />
+          </a>
+        </p>
+      </div>
     </div> <!-- id="container" -->
   </body>
 </html>

@@ -125,7 +125,7 @@ module('flaw.wifi')
 
 --- The wifi provider prototype.
 --
--- <p>The wifi provider type is set to <code>wifi._NAME</code>.
+-- <p>The wifi provider type is set to <code>wifi._NAME</code>.</p>
 --
 -- @class table
 -- @name WifiProvider

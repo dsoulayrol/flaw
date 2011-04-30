@@ -30,9 +30,9 @@ local beautiful = require('beautiful')
 
 --- Utilities.
 --
--- This module mainly contains utilities borrowed and improved from
+-- <p>This module mainly contains utilities borrowed and improved from
 -- wicked and other scripts found on the <b>awesome</b> wiki. Many
--- thanks to all the wiki contributors.
+-- thanks to all the wiki contributors.</p>
 --
 --
 -- @author David Soulayrol &lt;david.soulayrol AT gmail DOT com&gt;
