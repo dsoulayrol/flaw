@@ -65,6 +65,7 @@ local gmail = load_flaw_component('gmail')
 local memory = load_flaw_component('memory')
 local network = load_flaw_component('network')
 local title = load_flaw_component('title')
+local wifi = load_flaw_component('wifi')
 
 
 --- Introduction to the core concepts and mechanisms.
