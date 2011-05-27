@@ -26,7 +26,9 @@ local service_modules = { loaded = {}, dropped = {}, invalid = {} }
 local function load_flaw_component(name)
    local m = require('flaw.' .. name)
    if m then
-      m = m.init and m.init() or m
+      if m.init ~= nil then
+         m = m.init()
+      end
       if m ~= nil then
          table.insert(service_modules.loaded, name)
       else
@@ -51,21 +53,21 @@ local function get_modules_names(section)
 end
 
 -- Essential modules.
-local gadget = require('flaw.gadget')
-local provider = require('flaw.provider')
-local event = require('flaw.event')
-local helper = require('flaw.helper')
+require('flaw.gadget')
+require('flaw.provider')
+require('flaw.event')
+require('flaw.helper')
 
 -- Service modules.
-local alsa = load_flaw_component('alsa')
-local battery = load_flaw_component('battery')
-local calendar = load_flaw_component('calendar')
-local cpu = load_flaw_component('cpu')
-local gmail = load_flaw_component('gmail')
-local memory = load_flaw_component('memory')
-local network = load_flaw_component('network')
-local title = load_flaw_component('title')
-local wifi = load_flaw_component('wifi')
+load_flaw_component('alsa')
+load_flaw_component('battery')
+load_flaw_component('calendar')
+load_flaw_component('cpu')
+load_flaw_component('gmail')
+load_flaw_component('memory')
+load_flaw_component('network')
+load_flaw_component('title')
+load_flaw_component('wifi')
 
 
 --- Introduction to the core concepts and mechanisms.
@@ -239,4 +241,17 @@ function check_modules()
          timeout = 12,
          position = "top_right"}
    end
+end
+
+--- Check the availability of a service module.
+--
+-- @param m the name of the service module to check.
+-- @return true if the module was loaded, false otherwise. Note that
+--         loaded means here that the module was correctly parsed and
+--         has registered the provider or the gadgets it contains.
+function check_module(m)
+   for _, v in ipairs(service_modules['loaded']) do
+      if m == v then return true end
+   end
+   return false
 end
