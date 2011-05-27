@@ -24,6 +24,7 @@ local lfs = require('lfs')
 
 local flaw = {
    gadget = require('flaw.gadget'),
+   helper = require('flaw.helper'),
    provider = require('flaw.provider')
 }
 
@@ -204,14 +205,19 @@ end
 -- @return return this module if it can be used on the system,
 --         false otherwise.
 function init()
-   if lfs.attributes('/proc/net/wireless', 'mode') == 'file' then
+   local file = '/proc/net/wireless'
+   if lfs.attributes(file, 'mode') == 'file' then
+      local t = {}
+      flaw.helper.file.load_state_file('', file, t)
+      if # t ~= 0 then
 
-      -- An icon gadget prototype for wifi status display.
-      flaw.gadget.register.icon(_M)
+         -- An icon gadget prototype for wifi status display.
+         flaw.gadget.register.icon(_M)
 
-      -- A Text gadget prototype for wifi status display.
-      flaw.gadget.register.text(_M, { pattern = '$essid: $rate Mb/s' })
+         -- A Text gadget prototype for wifi status display.
+         flaw.gadget.register.text(_M, { pattern = '$essid: $rate Mb/s' })
 
-      return _M
+         return _M
+      end
    end
 end
