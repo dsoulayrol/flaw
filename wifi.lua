@@ -208,8 +208,7 @@ function init()
    local file = '/proc/net/wireless'
    if lfs.attributes(file, 'mode') == 'file' then
       local t = {}
-      flaw.helper.file.load_state_file('', file, t)
-      if # t ~= 0 then
+      if flaw.helper.file.load_state_file('', file, t) > 0 then
 
          -- An icon gadget prototype for wifi status display.
          flaw.gadget.register.icon(_M)

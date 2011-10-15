@@ -124,13 +124,11 @@ MemoryProvider = flaw.provider.CyclicProvider:new{ type = _NAME, data = {} }
 
 --- Callback for provider refresh.
 function MemoryProvider:do_refresh()
-   local r = false
    local p = self.data.proc
-
-   r = flaw.helper.file.load_state_file('/proc', 'meminfo', p)
+   local r = flaw.helper.file.load_state_file('/proc', 'meminfo', p)
 
    self.data.ratio = 0
-   if r then
+   if r > 0 then
       -- Adapt values.
       local total = p.meminfo_memtotal:match('(%d+).*') or 0
       local free = p.meminfo_memfree:match('(%d+).*') or 0

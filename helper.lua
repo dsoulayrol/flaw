@@ -68,26 +68,28 @@ end
 -- @param path the file path.
 -- @param name the filename.
 -- @param t the table which will hold the parsed values.
--- @return true if the file was correctly parsed, false otherwise.
+-- @return the number of lines parsed, or -1 if the file could not be opened.
 function file.load_state_file(path, name, t)
    local f = io.open(path .. '/' .. name)
+   local r = -1
 
    if f ~= nil then
       local prefix = name:lower() .. '_'
       local line = nil
+      r = 0
       repeat
          line = f:read()
          if line then
-            n, v = line:match('([%a ]+):%s+([%w ]+)')
+            n, v = line:match('([%a%d ]+):%s+([%w%.- ]+)')
             if n ~= nil and v ~= nil then
                t[prefix .. n:gsub(' ', '_'):lower()] = v:lower()
+               r = r + 1
             end
          end
       until line == nil
       f:close()
-      return true
    end
-   return false
+   return r
 end
 
 --- Text formatting related functions.

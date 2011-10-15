@@ -155,15 +155,13 @@ BatteryProvider = flaw.provider.CyclicProvider:new{ type = _NAME }
 --- Load state information from
 --- <code>/proc/acpi/battery/&lt;ID&gt;/</code> if it exists.
 function BatteryProvider:load_from_procfs()
-   local r = false
    local p = self.data.proc
-
-   r = flaw.helper.file.load_state_file(
+   local r1 = flaw.helper.file.load_state_file(
       SRC_PROC_DIR .. self.id:upper(), 'state', p)
-   r = flaw.helper.file.load_state_file(
-      SRC_PROC_DIR .. self.id:upper(), 'info', p) and r
+   local r2 = flaw.helper.file.load_state_file(
+      SRC_PROC_DIR .. self.id:upper(), 'info', p)
 
-   if r then
+   if r1 > 0 or r2 > 0 then
       -- Adapt values.
       local state = p.state_charging_state or ''
       local r_capacity = p.state_remaining_capacity:match('(%d+).*') or 0
