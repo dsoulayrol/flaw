@@ -201,4 +201,4 @@ flaw.gadget.register.text(_M, { delay = 1, pattern = '$load_user/$load_sum' })
 flaw.gadget.register.graph(_M, { delay = 1, values = { 'load_sum' } })
 
 -- An icon gadget for cpu status display.
-flaw.gadget.register.icon(_M)
+flaw.gadget.register.icon(_M, { delay = 1 })

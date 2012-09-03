@@ -226,17 +226,14 @@ function CyclicProvider:subscribe(g, rate)
    rate = rate or 60
    if Provider.subscribe(self, g) then
       self.subscribers[g].rate = rate
-      local start = false
       if self.timer == nil then
-         self.timer = capi.timer{ timeout = 60 }
+         self.timer = capi.timer{ timeout = rate }
          self.timer:add_signal('timeout', function() self:refresh() end, true)
-         start = true
-      end
-      if rate < self.timer.timeout then
-         self.timer.timeout = rate
-      end
-      if start then
          self.timer:start()
+      else
+         if rate < self.timer.timeout then
+            self.timer.timeout = rate
+         end
       end
 
       -- Initial refresh.

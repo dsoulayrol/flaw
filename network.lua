@@ -217,7 +217,7 @@ function provider_factory()
 end
 
 -- An icon gadget for network status display.
-flaw.gadget.register.icon(_M)
+flaw.gadget.register.icon(_M, { delay = 1 })
 
 -- A Text gadget for network status display.
 flaw.gadget.register.text(_M, { delay = 1, pattern = 'in:$net_in out:$net_out' })
