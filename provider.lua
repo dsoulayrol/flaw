@@ -166,6 +166,7 @@ function Provider:subscribe(g)
    return false
 end
    self.subscribers[g] = { timestamp = os.time() }
+   g:update()
    return true
 end
 
