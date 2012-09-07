@@ -58,7 +58,7 @@ local flaw = {
 -- <h3>Icon Gadget</h3>
 --
 -- <p>The ALSA icon gadget can be instantiated by indexing the gadget
--- module with <code>icon.alsa</code>. Here is an exemple which
+-- module with <code>icon.alsa</code>. Here is an example which
 -- assumes the card identifier is 0, and the path of the icon to
 -- display is stored in a <b>beautiful</b> property.</p>
 --
@@ -224,7 +224,7 @@ ALSAIconGadget = flaw.gadget.IconGadget:new{}
 
 -- Create the wrapped gadget.
 function ALSAIconGadget:create(wopt)
-   flaw.gadget.TextGadget.create(self, wopt)
+   flaw.gadget.IconGadget.create(self, wopt)
    self.widget:buttons(
       awful.util.table.join(
          awful.button({ }, 4, function() self.provider:raise() end),
@@ -235,7 +235,7 @@ end
 --- Module initialization routine.
 --
 -- <p> This method tests the available information on the system. If
--- alsa data can be found, if registers gadgets and returns the
+-- alsa data can be found, it registers gadgets and returns the
 -- module; otherwise it simply returns nil.</p>
 --
 -- @return return this module if it can be used on the system,
